@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project Workspace - Design Tool</title>
+    <link rel="icon" href="https://www.gstatic.com">
+    <style>
+        :root { --canva-purple: #7d2ae8; --bg: #f2f3f5; --sidebar: #ffffff; --border: #e3e4e7; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', Roboto, sans-serif; background: var(--bg); overflow: hidden; }
+
+        /* HEADER (CANVA STYLE) */
+        header { background: #fff; height: 56px; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 20px; z-index: 100; position: relative; }
+        .logo { font-weight: bold; font-size: 20px; color: var(--canva-purple); letter-spacing: -1px; cursor: pointer; }
+        .search-container { flex: 1; max-width: 600px; position: relative; }
+        .omni-bar { width: 100%; padding: 10px 20px; border: 1px solid var(--border); border-radius: 4px; outline: none; background: #f9f9f9; font-size: 14px; transition: 0.2s; }
+        .omni-bar:focus { background: #fff; border-color: var(--canva-purple); box-shadow: 0 0 0 2px rgba(125,42,232,0.1); }
+
+        /* LAYOUT */
+        .app-body { display: flex; height: calc(100vh - 56px); }
+        
+        /* SIDEBAR */
+        .sidebar { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 20px 0; display: flex; flex-direction: column; }
+        .nav-link { padding: 12px 24px; font-size: 14px; color: #4d4d4d; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+        .nav-link:hover { background: #f2f3f5; color: #000; }
+        .nav-link.active { background: #eee; font-weight: bold; color: var(--canva-purple); border-left: 4px solid var(--canva-purple); }
+
+        /* MAIN VIEWPORT */
+        .content { flex: 1; position: relative; overflow: hidden; background: #fff; margin: 15px; border-radius: 8px; border: 1px solid var(--border); }
+        #view-iframe { width: 100%; height: 100%; border: none; display: none; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #999; text-align: center; }
+        
+        /* OVERLAYS */
+        #panic-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 99999; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo" onclick="panic()">NEXUS</div>
+    <div class="search-container">
+        <input type="text" id="omniSearch" class="omni-bar" placeholder="Search resources, templates, or enter URL..." autocomplete="off">
+    </div>
+    <div style="margin-left: auto; display: flex; gap: 15px; align-items: center;">
+        <button onclick="panic()" style="background:var(--canva-purple); color:#fff; border:none; padding:8px 20px; border-radius:4px; font-weight:bold; cursor:pointer;">Create Project</button>
+    </div>
+</header>
+
+<div class="app-body">
+    <div class="sidebar">
+        <div class="nav-link active" onclick="setMode('home')">🏠 Home</div>
+        <div class="nav-link" onclick="setMode('templates')">🎨 Templates</div>
+        <div class="nav-link" onclick="setMode('research')">🔬 Research Nodes</div>
+        <div class="nav-link" onclick="setMode('assets')">📂 Project Assets</div>
+        <div style="margin-top: auto; border-top: 1px solid #eee; padding-top: 10px;">
+            <div class="nav-link" style="color: #d93025;" onclick="panic()">⚠️ Emergency Exit</div>
+        </div>
+    </div>
+
+    <div class="content" id="mainStage">
+        <!-- БРАУЗЕР ВНУТРИ ПРИЛОЖЕНИЯ -->
+        <iframe id="view-iframe"></iframe>
+
+        <!-- НАЧАЛЬНЫЙ ЭКРАН -->
+        <div class="empty-state" id="initial-view">
+            <h1 style="color:#202124; font-weight: 300;">What will we design today?</h1>
+            <p>Start your project by searching in the OmniBar above.</p>
+            <div style="display: flex; gap: 20px; margin-top: 30px;">
+                <div style="width:100px; height:100px; background:#f1f3f4; border-radius:8px;"></div>
+                <div style="width:100px; height:100px; background:#f1f3f4; border-radius:8px;"></div>
+                <div style="width:100px; height:100px; background:#f1f3f4; border-radius:8px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const omni = document.getElementById('omniSearch');
+    const iframe = document.getElementById('view-iframe');
+    const initialView = document.getElementById('initial-view');
+
+    // --- УМНЫЙ ЗАПУСК (STEALTH BROWSER) ---
+    omni.onkeypress = function(e) {
+        if (e.key === 'Enter' && this.value) {
+            let query = this.value;
+            let finalUrl;
+
+            // Детектор URL или Поиска
+            if (query.includes('.') && !query.includes(' ')) {
+                if (!query.startsWith('http')) query = 'https://' + query;
+                finalUrl = query;
+            } else {
+                // Используем DuckDuckGo (его Blocksi блокирует реже всего)
+                finalUrl = "https://duckduckgo.com" + encodeURIComponent(query);
+            }
+
+            // ШИФРОВАНИЕ ЧЕРЕЗ GOOGLE TRANSLATE PROXY
+            const proxy = "https://translate.google.com" + encodeURIComponent(finalUrl);
+
+            initialView.style.display = 'none';
+            iframe.style.display = 'block';
+            iframe.src = proxy;
+
+            // Маскировка строки после запуска
+            this.value = "Project Asset: " + (query.length > 20 ? query.substring(0,20) + "..." : query);
+            this.blur();
+        }
+    };
+
+    // --- ПЕРЕКЛЮЧЕНИЕ РЕЖИМОВ ---
+    function setMode(mode) {
+        const links = document.querySelectorAll('.nav-link');
+        links.forEach(l => l.classList.remove('active'));
+        event.target.classList.add('active');
+
+        if (mode === 'home') {
+            iframe.style.display = 'none';
+            initialView.style.display = 'flex';
+            omni.value = '';
+        }
+    }
+
+    // --- ПАНИКА (АВТОМАТИКА) ---
+    function panic() {
+        // Мгновенный уход на настоящий Google Docs
+        window.location.replace("https://docs.google.com");
+    }
+
+    // Если учитель кликнет на твой экран в панели (потеря фокуса)
+    window.onblur = panic;
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "Escape") panic();
+        // Shift + H (Home) - Мгновенно вернуться к чистому экрану Nexus
+        if (e.key === "H" && e.shiftKey) setMode('home');
+    });
+</script>
+</body>
+</html>

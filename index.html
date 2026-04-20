@@ -2,175 +2,217 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DanLab IDE | DanScript Engine</title>
+    <title>DanLab IDE Pro | v3.0</title>
     <style>
         :root { --bg: #1e1e1e; --sidebar: #252526; --accent: #007acc; --text: #d4d4d4; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Consolas', monospace; background: var(--bg); color: var(--text); overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        /* Panic Screen */
-        #panic-screen { display: none; background: white; color: black; padding: 50px; height: 100vh; position: fixed; z-index: 9999; font-family: serif; }
+        #panic-screen { display: none; background: white; color: black; padding: 50px; height: 100vh; position: fixed; z-index: 9999; font-family: serif; width: 100%; }
         
-        /* UI Layout */
         .app { display: flex; flex-direction: column; height: 100vh; }
-        header { background: #333; height: 30px; display: flex; align-items: center; padding: 0 15px; font-size: 12px; border-bottom: 1px solid #111; justify-content: space-between; }
-        .main { display: flex; flex: 1; }
-        .explorer { width: 180px; background: var(--sidebar); border-right: 1px solid #111; padding: 10px; font-size: 12px; }
-        .editor-container { flex: 1; display: flex; flex-direction: column; }
-        textarea { flex: 1; background: var(--bg); color: #9cdcfe; border: none; padding: 20px; font-size: 14px; outline: none; resize: none; border-right: 1px solid #333; }
-        .preview { flex: 1; background: #000; position: relative; }
-        iframe { width: 100%; height: 100%; border: none; background: #000; }
+        header { background: #333; height: 35px; display: flex; align-items: center; padding: 0 15px; font-size: 12px; border-bottom: 1px solid #111; justify-content: space-between; }
         
-        /* Controls */
-        .toolbar { background: #1e1e1e; padding: 10px; border-top: 1px solid #333; display: flex; gap: 10px; align-items: center; }
+        .main { display: flex; flex: 1; overflow: hidden; }
+        
+        /* Sidebar & File Explorer */
+        .explorer { width: 200px; background: var(--sidebar); border-right: 1px solid #111; display: flex; flex-direction: column; }
+        .explorer-header { padding: 10px; font-size: 11px; font-weight: bold; color: #888; display: flex; justify-content: space-between; }
+        .file-list { flex: 1; }
+        .file-item { padding: 5px 15px; font-size: 13px; cursor: pointer; color: #9cdcfe; display: flex; align-items: center; gap: 8px; }
+        .file-item:hover { background: #2a2d2e; }
+        .file-item.active { background: #37373d; border-left: 2px solid var(--accent); }
+        .new-file-btn { cursor: pointer; color: #fff; font-size: 16px; }
+
+        /* Editor Section */
+        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .tabs-bar { background: var(--sidebar); height: 35px; display: flex; overflow-x: auto; }
+        .tab { padding: 0 15px; display: flex; align-items: center; font-size: 12px; background: #2d2d2d; border-right: 1px solid #1e1e1e; cursor: pointer; min-width: 80px; }
+        .tab.active { background: var(--bg); border-top: 1px solid var(--accent); }
+        
+        textarea { flex: 1; background: var(--bg); color: #9cdcfe; border: none; padding: 20px; font-family: 'Consolas', monospace; font-size: 14px; outline: none; resize: none; }
+
+        /* Preview */
+        .preview { width: 40%; background: #000; position: relative; display: flex; flex-direction: column; }
+        iframe { flex: 1; border: none; background: #000; }
+        
+        .toolbar { background: #1e1e1e; padding: 10px; border-top: 1px solid #333; display: flex; gap: 10px; }
         button { background: var(--accent); color: white; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; }
-        button:hover { background: #005a9e; }
         footer { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 10px; color: white; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <div id="panic-screen">
-    <h1>Analysis of Quantum Computing Algorithms</h1>
-    <p>In this paper, we explore the implications of Shor's algorithm on modern RSA encryption methods...</p>
-    <p style="margin-top: 50px; color: #888;">[Press ESC to return to work]</p>
+    <h1>Advanced Cryptography and Network Security</h1>
+    <p>Section 5.4: Implementations of asymmetric encryption in modern web environments...</p>
 </div>
 
 <div class="app" id="main-ui">
     <header>
-        <div>File &nbsp; Edit &nbsp; Selection &nbsp; <b>Run</b></div>
-        <div>DanLab IDE v2.0 - main.ds</div>
+        <div>File &nbsp; Edit &nbsp; Selection &nbsp; <b>DanLab v3.0</b></div>
         <div id="time">00:00</div>
     </header>
 
     <div class="main">
         <div class="explorer">
-            <b style="color: #555;">EXPLORER</b>
-            <div style="margin-top:10px; color: #fff;">▼ PROJECT_ALPHA</div>
-            <div style="margin-left: 10px; color: #9cdcfe;">⚡ main.ds</div>
+            <div class="explorer-header">
+                <span>EXPLORER</span>
+                <span class="new-file-btn" onclick="createNewFile()">+</span>
+            </div>
+            <div class="file-list" id="file-list"></div>
         </div>
 
         <div class="editor-container">
-            <textarea id="code-editor" spellcheck="false"></textarea>
+            <div class="tabs-bar" id="tabs-bar"></div>
+            <textarea id="code-editor" spellcheck="false" oninput="saveCurrentFile()"></textarea>
             <div class="toolbar">
-                <button onclick="executeCode()">▶ RUN DANSCRIPT</button>
-                <span style="font-size: 10px; color: #555;">Press ESC for Panic Mode</span>
+                <button onclick="executeCode()">▶ RUN CODE</button>
             </div>
         </div>
 
         <div class="preview">
+            <div style="padding: 5px 10px; font-size: 11px; background: #333;">OUTPUT PREVIEW</div>
             <iframe id="output-view"></iframe>
         </div>
     </div>
 
     <footer>
-        <div>Engine: DanScript 0.2 | Status: Operational</div>
-        <div>Developer: Dan (13 y.o.) | UTF-8</div>
+        <div>DanScript Pro | Developer: Dan (13 y.o.)</div>
+        <div id="file-info">main.ds</div>
     </footer>
 </div>
 
 <script>
-    const editor = document.getElementById('code-editor');
-    const iframe = document.getElementById('output-view');
+    // --- FILE SYSTEM LOGIC ---
+    let files = JSON.parse(localStorage.getItem('dan_files')) || {
+        "main.ds": "# Welcome to DanLab v3.0\nsize = 150\n\npanic.button.text(\"DANGER\")\npanic.button.color(\"red\")\n\ndraw.rect(20, 20, size, size, \"blue\")\nprint(\"System ready.\")"
+    };
+    let currentFile = Object.keys(files)[0];
 
-    // Твой новый крутой синтаксис (Python-style)
-    const welcomeCode = `# DanScript v0.2
-# Создаем переменные
-size = 120
-color = "blue"
+    function renderFiles() {
+        const list = document.getElementById('file-list');
+        const tabs = document.getElementById('tabs-bar');
+        list.innerHTML = '';
+        tabs.innerHTML = '';
 
-# Вывод в консоль
-print("Starting DanScript Engine...")
-print("Drawing your objects...")
+        Object.keys(files).forEach(name => {
+            // Sidebar item
+            const item = document.createElement('div');
+            item.className = `file-item ${name === currentFile ? 'active' : ''}`;
+            item.innerHTML = `📄 ${name}`;
+            item.onclick = () => switchFile(name);
+            list.appendChild(item);
 
-# Графика
-draw.rect(40, 40, size, size, color)
-draw.circle(200, 150, 60, "red")
+            // Tab item
+            const tab = document.createElement('div');
+            tab.className = `tab ${name === currentFile ? 'active' : ''}`;
+            tab.innerHTML = name;
+            tab.onclick = () => switchFile(name);
+            tabs.appendChild(tab);
+        });
+    }
 
-# Твоя главная фишка
-panic.button("EXIT NOW")`;
+    function switchFile(name) {
+        currentFile = name;
+        document.getElementById('code-editor').value = files[name];
+        document.getElementById('file-info').innerText = name;
+        renderFiles();
+    }
 
-    editor.value = localStorage.getItem('dan_code') || welcomeCode;
+    function createNewFile() {
+        const name = prompt("Enter file name (e.g. game.ds):");
+        if (name && !files[name]) {
+            files[name] = "# New Script";
+            switchFile(name);
+        }
+    }
 
+    function saveCurrentFile() {
+        files[currentFile] = document.getElementById('code-editor').value;
+        localStorage.setItem('dan_files', JSON.stringify(files));
+    }
+
+    // --- INTERPRETER LOGIC ---
     function executeCode() {
-        const code = editor.value;
-        localStorage.setItem('dan_code', code);
-
-        const doc = iframe.contentWindow.document;
+        const code = document.getElementById('code-editor').value;
+        const doc = document.getElementById('output-view').contentWindow.document;
+        
         doc.open();
         doc.write(`
             <style>
-                body { background: #000; color: #0f0; font-family: monospace; padding: 15px; margin: 0; }
-                #console { color: #0f0; height: 80px; overflow: hidden; border-bottom: 1px solid #222; margin-bottom: 10px; }
-                canvas { display: block; border: 1px solid #333; }
-                .panic-btn { position: fixed; bottom: 15px; right: 15px; background: red; color: white; border: none; padding: 10px; font-weight: bold; cursor: pointer; }
+                body { background: #000; color: #0f0; font-family: monospace; padding: 15px; margin:0; }
+                canvas { border: 1px solid #333; margin-top: 10px; }
+                #panic-btn { position: fixed; bottom: 20px; right: 20px; padding: 12px; border: none; font-weight: bold; cursor: pointer; display:none; }
             </style>
             <div id="console"></div>
-            <canvas id="c" width="500" height="400"></canvas>
+            <canvas id="c" width="400" height="300"></canvas>
+            <button id="panic-btn"></button>
             <script>
                 const ctx = document.getElementById('c').getContext('2d');
                 function log(t) { document.getElementById('console').innerHTML += "> " + t + "<br>"; }
+                document.getElementById('panic-btn').onclick = () => window.parent.togglePanic();
             <\/script>
         `);
 
         const lines = code.split('\n');
-        let scope = {}; // Память языка (переменные)
+        let scope = {};
 
         lines.forEach(line => {
             line = line.trim();
             if (!line || line.startsWith('#')) return;
 
             try {
-                // 1. ПЕРЕМЕННЫЕ (speed = 10)
+                // ПЕРЕМЕННЫЕ
                 if (line.includes('=') && !line.includes('(')) {
-                    let [name, val] = line.split('=').map(s => s.trim());
-                    scope[name] = isNaN(val) ? val.replace(/"/g, '') : Number(val);
+                    let [n, v] = line.split('=').map(s => s.trim());
+                    scope[n] = isNaN(v) ? v.replace(/"/g, '') : Number(v);
                 }
-
-                // 2. PRINT()
+                
+                // ПРИНТ
                 if (line.startsWith('print(')) {
-                    let raw = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
-                    let out = scope[raw] !== undefined ? scope[raw] : raw;
-                    iframe.contentWindow.log(out);
+                    let val = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
+                    doc.getElementById('console').innerHTML += "> " + (scope[val] || val) + "<br>";
                 }
 
-                // 3. DRAW.RECT(x, y, w, h, color)
+                // УЛУЧШЕННЫЙ PANIC.BUTTON
+                if (line.startsWith('panic.button.text(')) {
+                    let t = line.match(/"([^"]+)"/)[1];
+                    const b = doc.getElementById('panic-btn');
+                    b.innerText = t; b.style.display = 'block';
+                }
+                if (line.startsWith('panic.button.color(')) {
+                    let c = line.match(/"([^"]+)"/)[1];
+                    doc.getElementById('panic-btn').style.backgroundColor = c;
+                }
+
+                // DRAW.RECT(x, y, w, h, color)
                 if (line.startsWith('draw.rect(')) {
                     let args = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
-                    let params = args.map(a => scope[a] !== undefined ? scope[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
-                    let c = iframe.contentWindow;
-                    c.ctx.fillStyle = params[4] || 'white';
-                    c.ctx.fillRect(params[0], params[1], params[2], params[3]);
+                    let p = args.map(a => scope[a] !== undefined ? scope[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
+                    const win = document.getElementById('output-view').contentWindow;
+                    win.ctx.fillStyle = p[4] || 'white';
+                    win.ctx.fillRect(p[0], p[1], p[2], p[3]);
                 }
-
-                // 4. PANIC.BUTTON("text")
-                if (line.startsWith('panic.button(')) {
-                    let txt = line.match(/"([^"]+)"/)[1];
-                    let btn = doc.createElement('button');
-                    btn.className = 'panic-btn';
-                    btn.innerText = txt;
-                    btn.onclick = () => { window.parent.togglePanic(); };
-                    doc.body.appendChild(btn);
-                }
-
-            } catch(e) { console.error("Syntax Error: " + line); }
+            } catch(e) {}
         });
         doc.close();
     }
 
-    // Panic System
     function togglePanic() {
         const p = document.getElementById('panic-screen');
         const ui = document.getElementById('main-ui');
-        if (p.style.display === 'none' || !p.style.display) {
-            p.style.display = 'block'; ui.style.display = 'none';
-        } else {
-            p.style.display = 'none'; ui.style.display = 'flex';
-        }
+        const isHidden = p.style.display === 'none' || !p.style.display;
+        p.style.display = isHidden ? 'block' : 'none';
+        ui.style.display = isHidden ? 'none' : 'flex';
     }
 
     window.addEventListener('keydown', e => { if(e.key === 'Escape') togglePanic(); });
     setInterval(() => { document.getElementById('time').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
-    executeCode(); // Start on load
+    
+    // Init
+    renderFiles();
+    switchFile(currentFile);
+    executeCode();
 </script>
 </body>
 </html>

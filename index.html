@@ -1,163 +1,174 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DevLab | Professional Environment</title>
+    <title>Research Portfolio | Academic Lab</title>
     <style>
         :root {
-            --bg-dark: #1e1e1e;
-            --panel-dark: #252526;
-            --accent: #007acc;
-            --text: #cccccc;
+            --vscode-bg: #1e1e1e;
+            --vscode-sidebar: #252526;
+            --vscode-accent: #007acc;
+            --vscode-text: #d4d4d4;
         }
 
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text);
+        body, html { 
+            margin: 0; padding: 0; height: 100%; 
+            font-family: 'Segoe UI', sans-serif; 
+            background: var(--vscode-bg); color: var(--vscode-text);
             overflow: hidden;
         }
 
-        /* Шапка как в VS Code */
-        header {
-            height: 40px;
-            background-color: #333333;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            justify-content: space-between;
-            border-bottom: 1px solid #444;
-        }
-
-        .logo { font-weight: bold; color: #fff; letter-spacing: 1px; }
-
-        /* Контейнер для редактора и превью */
-        .main-container {
-            display: flex;
-            height: calc(100vh - 40px);
-        }
-
-        .editor-side, .preview-side {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
+        /* --- STUDY MODE (SECRET) --- */
+        #study-mode {
+            display: none;
+            background: white;
+            color: black;
+            padding: 50px;
+            height: 100vh;
+            overflow-y: auto;
             box-sizing: border-box;
         }
+        #study-mode h1 { border-bottom: 1px solid #ccc; padding-bottom: 10px; }
 
-        /* Текстовое поле в стиле кода */
-        textarea {
-            flex: 1;
-            background-color: var(--panel-dark);
-            color: #d4d4d4;
-            border: 1px solid #3c3c3c;
-            border-radius: 4px;
-            padding: 15px;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 14px;
-            resize: none;
-            outline: none;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        /* --- DEV MODE --- */
+        #dev-mode { display: flex; flex-direction: column; height: 100vh; }
+
+        header {
+            background: #333; height: 35px; display: flex; 
+            align-items: center; padding: 0 15px; font-size: 12px;
+            border-bottom: 1px solid #444; justify-content: space-between;
         }
 
-        textarea:focus { border-color: var(--accent); }
+        .container { display: flex; flex: 1; overflow: hidden; }
 
-        /* Кнопки */
-        .controls {
-            padding: 10px 0;
-            display: flex;
-            gap: 10px;
+        .editor-container { 
+            flex: 1; display: flex; flex-direction: column; 
+            border-right: 1px solid #444; background: var(--vscode-sidebar);
+        }
+
+        textarea {
+            flex: 1; background: #1e1e1e; color: #9cdcfe; border: none;
+            padding: 20px; font-family: 'Consolas', monospace; font-size: 14px;
+            outline: none; resize: none;
+        }
+
+        .preview-container { flex: 1; background: #eee; display: flex; flex-direction: column; }
+
+        iframe { flex: 1; border: none; background: white; }
+
+        .toolbar { 
+            padding: 8px 15px; background: #2d2d2d; 
+            display: flex; gap: 10px; align-items: center;
         }
 
         button {
-            padding: 8px 20px;
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
+            background: var(--vscode-accent); color: white; border: none;
+            padding: 5px 15px; cursor: pointer; border-radius: 2px;
+            font-size: 12px; transition: 0.2s;
         }
+        button:hover { background: #005a9e; }
 
-        button:hover { background-color: #005a9e; }
-        
-        .btn-clear { background-color: #444; }
-        .btn-clear:hover { background-color: #555; }
-
-        /* Окно предпросмотра */
-        iframe {
-            flex: 1;
-            background-color: white; /* Чтобы игры было видно четко */
-            border: none;
-            border-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-        }
-
-        .label {
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            color: #888;
+        .status-bar { 
+            height: 22px; background: var(--vscode-accent); 
+            font-size: 11px; display: flex; align-items: center; padding: 0 10px;
         }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">DEVLAB_SANDBOX v1.0</div>
-    <div style="font-size: 12px;">Mode: Educational / Development</div>
-</header>
+    <!-- РЕЖИМ УЧЕБЫ (Для маскировки) -->
+    <div id="study-mode">
+        <h1>Global Economics and Historical Development</h1>
+        <p><i>University Research Paper - Section 4.2</i></p>
+        <p>The industrial revolution marked a major turning point in history, influencing nearly every aspect of daily life. In particular, average income and population began to exhibit unprecedented sustained growth. Some economists say that the major impact of the Industrial Revolution was that the standard of living for the general population began to increase consistently for the first time in history...</p>
+        <p>[Press <b>ESC</b> to return to terminal]</p>
+    </div>
 
-<div class="main-container">
-    <div class="editor-side">
-        <div class="label">Source Code (HTML/JS/CSS)</div>
-        <textarea id="code" placeholder="<html>
-<body>
-  <h1>Hello World</h1>
-  <script>
-    console.log('Ready');
-  </script>
-</body>
-</html>"></textarea>
-        <div class="controls">
-            <button onclick="run()">▶ Скомпилировать и Запустить</button>
-            <button class="btn-clear" onclick="clearCode()">Очистить</button>
+    <!-- РЕЖИМ РАЗРАБОТКИ -->
+    <div id="dev-mode">
+        <header>
+            <div>File &nbsp; Edit &nbsp; Selection &nbsp; Terminal &nbsp; <b>Help</b></div>
+            <div id="clock">12:00 PM</div>
+        </header>
+
+        <div class="container">
+            <div class="editor-container">
+                <div class="toolbar" style="font-size: 11px; color: #888;">index.html — Edit Mode</div>
+                <textarea id="codeEditor" spellcheck="false" placeholder="<!-- Write your HTML/CSS/JS here -->
+<style>
+  body { text-align: center; font-family: sans-serif; padding-top: 50px; }
+  button { padding: 20px; font-size: 20px; cursor: pointer; }
+</style>
+
+<h1>My New Game</h1>
+<button onclick='alert(\'It works!\')'>PLAY</button>"></textarea>
+                <div class="toolbar">
+                    <button onclick="updatePreview()">▶ Run Code</button>
+                    <button style="background:#444" onclick="clearAll()">Clear</button>
+                    <span style="font-size: 10px; color: #aaa;">Press <b>ESC</b> for Panic Mode</span>
+                </div>
+            </div>
+
+            <div class="preview-container">
+                <div class="toolbar" style="background:#ddd; color:#333; font-size:11px;">Live Preview (Localhost:3000)</div>
+                <iframe id="livePreview"></iframe>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            Ready | UTF-8 | JavaScript React | Master*
         </div>
     </div>
 
-    <div class="preview-side">
-        <div class="label">Live Preview Window</div>
-        <iframe id="preview"></iframe>
-    </div>
-</div>
+    <script>
+        // Функция запуска кода
+        function updatePreview() {
+            const code = document.getElementById('codeEditor').value;
+            const preview = document.getElementById('livePreview').contentWindow.document;
+            preview.open();
+            preview.write(code);
+            preview.close();
+        }
 
-<script>
-    function run() {
-        const code = document.getElementById('code').value;
-        const preview = document.getElementById('preview').contentWindow.document;
-        preview.open();
-        preview.write(code);
-        preview.close();
-    }
+        // Очистка
+        function clearAll() {
+            if(confirm("Clear all code?")) {
+                document.getElementById('codeEditor').value = '';
+                updatePreview();
+            }
+        }
 
-    function clearCode() {
-        document.getElementById('code').value = '';
-        document.getElementById('preview').src = "about:blank";
-    }
+        // ПАНИКА: Переключение режимов по нажатию ESC
+        window.addEventListener('keydown', function(e) {
+            if (e.key === "Escape") {
+                const dev = document.getElementById('dev-mode');
+                const study = document.getElementById('study-mode');
+                
+                if (dev.style.display === "none") {
+                    dev.style.display = "flex";
+                    study.style.display = "none";
+                } else {
+                    dev.style.display = "none";
+                    study.style.display = "block";
+                }
+            }
+        });
 
-    // Сохранение кода в браузере автоматически
-    const area = document.getElementById('code');
-    area.value = localStorage.getItem('savedCode') || '';
-    
-    area.addEventListener('input', () => {
-        localStorage.setItem('savedCode', area.value);
-    });
-</script>
+        // Часы в углу для реализма
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
 
+        // Автосохранение
+        const editor = document.getElementById('codeEditor');
+        editor.value = localStorage.getItem('saved_code') || editor.value;
+        editor.addEventListener('input', () => {
+            localStorage.setItem('saved_code', editor.value);
+        });
+
+        // Запуск при загрузке
+        updatePreview();
+    </script>
 </body>
 </html>

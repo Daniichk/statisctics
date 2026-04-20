@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DanLab IDE Pro | Fix v5.1</title>
+    <title>DanLab PRO | System Restore v5.2</title>
     <script src="https://unpkg.com"></script>
     <style>
         :root { --bg: #0a0a0a; --sidebar: #121212; --border: #222; --accent: #0078d4; --text: #d4d4d4; }
@@ -14,7 +14,7 @@
         .explorer { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
         .explorer-header { padding: 15px; font-size: 11px; font-weight: bold; color: #666; display: flex; justify-content: space-between; align-items: center; }
         .file-list { flex: 1; overflow-y: auto; }
-        .file-item { padding: 10px 15px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; color: #888; }
+        .file-item { padding: 10px 15px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; color: #888; border-bottom: 1px solid #1a1a1a; }
         .file-item.active { background: rgba(0, 120, 212, 0.1); color: var(--accent); border-left: 3px solid var(--accent); }
         .editor-zone { flex: 1; display: flex; flex-direction: column; background: #0d0d0d; }
         .tabs { background: var(--sidebar); height: 35px; display: flex; border-bottom: 1px solid var(--border); }
@@ -30,52 +30,66 @@
 <body>
 
 <div id="panic-screen">
-    <h1>Advanced Systems Architecture</h1>
-    <p>Theory of computation and interpreted languages...</p>
+    <h1>Restoration Mode: Academic Archive</h1>
+    <p>System files recovered successfully. Computational linguistics terminal active.</p>
 </div>
 
 <div class="app" id="main-ui">
     <header>
-        <div><b style="color:var(--accent)">DanLab PRO v5.1</b> &nbsp; <span style="opacity:0.5">File Edit Run</span></div>
-        <div id="clock">--:--</div>
+        <div><b style="color:var(--accent)">DanLab PRO v5.2</b> &nbsp; <span style="opacity:0.5">File Edit Run</span></div>
+        <div id="clock-display" style="font-weight:bold; color: #fff;">00:00</div>
     </header>
     <div class="main">
         <div class="explorer">
-            <div class="explorer-header">FILES <i data-lucide="file-plus" style="width:16px; cursor:pointer;" onclick="createNewFile()"></i></div>
+            <div class="explorer-header">PROJECT FILES <i data-lucide="file-plus" style="width:16px; cursor:pointer;" onclick="createNewFile()"></i></div>
             <div id="file-list" class="file-list"></div>
         </div>
         <div class="editor-zone">
             <div class="tabs" id="tabs-bar"></div>
             <textarea id="code-editor" spellcheck="false" oninput="saveCurrentFile()"></textarea>
+            <div style="padding: 10px; background: #1e1e1e; display: flex; gap: 10px;">
+                <button onclick="localStorage.clear(); location.reload();" style="background:#ff4444; color:white; border:none; padding:5px 10px; cursor:pointer; font-size:10px;">HARD RESET</button>
+                <span style="font-size:10px; color:#555;">(If files disappear, click Reset)</span>
+            </div>
         </div>
         <div class="preview-zone"><iframe id="output-view"></iframe></div>
     </div>
     <button class="run-btn" onclick="executeDanScript()">▶ RUN CODE</button>
     <footer>
-        <div>DanScript 5.1 | Developer: Dan (13 y.o.)</div>
-        <div id="file-info">Ready</div>
+        <div>Engine: DanScript 5.2 | Developer: Dan (13 y.o.)</div>
+        <div id="file-info">Initializing...</div>
     </footer>
 </div>
 
 <script>
-    // --- ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА ---
-    function init() {
-        lucide.createIcons();
+    // Глобальные переменные
+    let files = {};
+    let currentFile = "";
 
-        // Если старый localStorage мешает, мы создаем чистую структуру
-        let saved = localStorage.getItem('dan_v5_files');
-        window.files = (saved && saved !== '{}') ? JSON.parse(saved) : {
-            "main.ds": "# DanScript Fixed\nspawn.character(\"robot\")\nchar.say(\"Everything is fixed!\")"
-        };
+    function startApp() {
+        lucide.createIcons();
         
-        window.currentFile = localStorage.getItem('dan_last_file') || Object.keys(window.files)[0];
+        // 1. ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА
+        const savedData = localStorage.getItem('dan_v5_files');
+        if (!savedData || savedData === '{}') {
+            files = {
+                "main.ds": "# DanScript v5.2\nspawn.character(\"robot\")\nchar.say(\"System Restored!\")\n\nprint(\"Ready to code\")",
+                "hello.ds": "print(\"Hello world!\")"
+            };
+            localStorage.setItem('dan_v5_files', JSON.stringify(files));
+        } else {
+            files = JSON.parse(savedData);
+        }
+
+        currentFile = localStorage.getItem('dan_last_file') || Object.keys(files)[0];
         
-        // Запуск часов
+        // 2. ЗАПУСК ЧАСОВ
         updateClock();
         setInterval(updateClock, 1000);
 
         renderFiles();
-        switchFile(window.currentFile);
+        switchFile(currentFile);
+        executeDanScript();
     }
 
     function renderFiles() {
@@ -83,71 +97,67 @@
         const tabs = document.getElementById('tabs-bar');
         list.innerHTML = ''; tabs.innerHTML = '';
         
-        Object.keys(window.files).forEach(name => {
-            list.innerHTML += `<div class="file-item ${name === window.currentFile ? 'active' : ''}" onclick="switchFile('${name}')">📄 ${name}</div>`;
-            tabs.innerHTML += `<div class="tab ${name === window.currentFile ? 'active' : ''}" onclick="switchFile('${name}')">${name}</div>`;
+        Object.keys(files).forEach(name => {
+            list.innerHTML += `<div class="file-item ${name === currentFile ? 'active' : ''}" onclick="switchFile('${name}')">📄 ${name}</div>`;
+            tabs.innerHTML += `<div class="tab ${name === currentFile ? 'active' : ''}" onclick="switchFile('${name}')">${name}</div>`;
         });
         lucide.createIcons();
     }
 
     function switchFile(name) {
-        if (!window.files[name]) name = Object.keys(window.files)[0];
-        window.currentFile = name;
+        if (!files[name]) name = Object.keys(files)[0];
+        currentFile = name;
         localStorage.setItem('dan_last_file', name);
-        document.getElementById('code-editor').value = window.files[name];
-        document.getElementById('file-info').innerText = name;
+        document.getElementById('code-editor').value = files[name];
+        document.getElementById('file-info').innerText = "Editing: " + name;
         renderFiles();
     }
 
+    function saveCurrentFile() {
+        files[currentFile] = document.getElementById('code-editor').value;
+        localStorage.setItem('dan_v5_files', JSON.stringify(files));
+    }
+
     function createNewFile() {
-        let n = prompt("New file name:");
+        let n = prompt("File name:");
         if(n) { 
             if(!n.endsWith('.ds')) n += '.ds';
-            window.files[n] = "# New file"; 
+            files[n] = "# New Script"; 
             switchFile(n); 
-            saveAll();
+            saveCurrentFile();
         }
     }
 
-    function saveCurrentFile() {
-        window.files[window.currentFile] = document.getElementById('code-editor').value;
-        saveAll();
-    }
-
-    function saveAll() { localStorage.setItem('dan_v5_files', JSON.stringify(window.files)); }
-
     function updateClock() {
-        const now = new Date();
-        document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        const clockEl = document.getElementById('clock-display');
+        if (clockEl) {
+            const now = new Date();
+            clockEl.innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        }
     }
 
     function executeDanScript() {
         const code = document.getElementById('code-editor').value;
         const doc = document.getElementById('output-view').contentWindow.document;
         doc.open();
-        doc.write('<style>body{background:#000;color:#0f0;font-family:monospace;padding:20px;}</style><div id="c"></div>');
-        doc.write('<script>function log(t){document.getElementById("c").innerHTML += "> "+t+"<br>"}</script>');
-        
-        // Твоя логика интерпретатора здесь (print, spawn и т.д.)
-        if(code.includes('print')) doc.write('<script>log("Script executed!");</script>');
-        if(code.includes('spawn.character("robot")')) doc.write('<div style="font-size:50px">🤖</div>');
-        
+        doc.write('<style>body{background:#000;color:#0f0;font-family:monospace;padding:20px;} .robot{font-size:60px;}</style><div id="o"></div>');
+        if(code.includes('spawn.character("robot")')) doc.write('<div class="robot">🤖</div>');
+        if(code.includes('print')) doc.write('<div>> Script Active</div>');
         doc.close();
     }
 
-    // Обработка ESC для Panic Mode
     window.addEventListener('keydown', e => {
         if(e.key === 'Escape') {
             const p = document.getElementById('panic-screen');
             const u = document.getElementById('main-ui');
-            const h = p.style.display === 'none' || !p.style.display;
-            p.style.display = h ? 'block' : 'none';
-            u.style.display = h ? 'none' : 'flex';
+            const isH = p.style.display === 'none' || !p.style.display;
+            p.style.display = isH ? 'block' : 'none';
+            u.style.display = isH ? 'none' : 'flex';
         }
     });
 
-    // ЗАПУСК СИСТЕМЫ
-    window.onload = init;
+    // Прямой вызов после загрузки DOM
+    document.addEventListener('DOMContentLoaded', startApp);
 </script>
 </body>
 </html>

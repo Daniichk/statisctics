@@ -2,62 +2,193 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DanLab IDE Pro | v3.0</title>
+    <title>DanLab Pro | Ultimate Edition</title>
+    <!-- Подключаем красивые иконки -->
+    <script src="https://unpkg.com"></script>
     <style>
-        :root { --bg: #1e1e1e; --sidebar: #252526; --accent: #007acc; --text: #d4d4d4; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
-        
-        #panic-screen { display: none; background: white; color: black; padding: 50px; height: 100vh; position: fixed; z-index: 9999; font-family: serif; width: 100%; }
-        
+        :root {
+            --bg: #0d0d0d;
+            --sidebar: #151515;
+            --accent: #0078d4;
+            --accent-hover: #005a9e;
+            --border: #2b2b2b;
+            --text-main: #e1e1e1;
+            --text-dim: #858585;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg); color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* --- UI UPGRADE --- */
         .app { display: flex; flex-direction: column; height: 100vh; }
-        header { background: #333; height: 35px; display: flex; align-items: center; padding: 0 15px; font-size: 12px; border-bottom: 1px solid #111; justify-content: space-between; }
-        
-        .main { display: flex; flex: 1; overflow: hidden; }
-        
-        /* Sidebar & File Explorer */
-        .explorer { width: 200px; background: var(--sidebar); border-right: 1px solid #111; display: flex; flex-direction: column; }
-        .explorer-header { padding: 10px; font-size: 11px; font-weight: bold; color: #888; display: flex; justify-content: space-between; }
-        .file-list { flex: 1; }
-        .file-item { padding: 5px 15px; font-size: 13px; cursor: pointer; color: #9cdcfe; display: flex; align-items: center; gap: 8px; }
-        .file-item:hover { background: #2a2d2e; }
-        .file-item.active { background: #37373d; border-left: 2px solid var(--accent); }
-        .new-file-btn { cursor: pointer; color: #fff; font-size: 16px; }
+
+        header {
+            background: rgba(30, 30, 30, 0.8);
+            backdrop-filter: blur(10px);
+            height: 45px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            border-bottom: 1px solid var(--border);
+            justify-content: space-between;
+            z-index: 100;
+        }
+
+        .main { display: flex; flex: 1; overflow: hidden; background: var(--bg); }
+
+        /* Sidebar Explorer */
+        .explorer {
+            width: 240px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: 0.3s;
+        }
+
+        .explorer-header {
+            padding: 15px 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-item {
+            padding: 8px 20px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text-dim);
+            transition: 0.2s;
+        }
+
+        .file-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .file-item.active { background: rgba(0, 120, 212, 0.1); color: var(--accent); border-left: 3px solid var(--accent); }
 
         /* Editor Section */
-        .editor-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
-        .tabs-bar { background: var(--sidebar); height: 35px; display: flex; overflow-x: auto; }
-        .tab { padding: 0 15px; display: flex; align-items: center; font-size: 12px; background: #2d2d2d; border-right: 1px solid #1e1e1e; cursor: pointer; min-width: 80px; }
-        .tab.active { background: var(--bg); border-top: 1px solid var(--accent); }
+        .editor-container { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
         
-        textarea { flex: 1; background: var(--bg); color: #9cdcfe; border: none; padding: 20px; font-family: 'Consolas', monospace; font-size: 14px; outline: none; resize: none; }
+        .tabs-bar {
+            background: var(--sidebar);
+            height: 40px;
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
 
-        /* Preview */
-        .preview { width: 40%; background: #000; position: relative; display: flex; flex-direction: column; }
+        .tab {
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-dim);
+            border-right: 1px solid var(--border);
+            cursor: pointer;
+            background: #1a1a1a;
+        }
+
+        .tab.active { background: var(--bg); color: #fff; border-top: 2px solid var(--accent); }
+
+        textarea {
+            flex: 1;
+            background: transparent;
+            color: #9cdcfe;
+            border: none;
+            padding: 25px;
+            font-family: 'JetBrains Mono', 'Consolas', monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            outline: none;
+            resize: none;
+        }
+
+        /* Preview Side */
+        .preview {
+            width: 45%;
+            background: #000;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .preview-header {
+            padding: 10px 20px;
+            font-size: 11px;
+            background: #111;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border);
+        }
+
         iframe { flex: 1; border: none; background: #000; }
-        
-        .toolbar { background: #1e1e1e; padding: 10px; border-top: 1px solid #333; display: flex; gap: 10px; }
-        button { background: var(--accent); color: white; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; }
-        footer { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 10px; color: white; justify-content: space-between; }
+
+        /* Floating Run Button */
+        .run-btn {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 120, 212, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 200;
+            transition: 0.3s;
+        }
+
+        .run-btn:hover { transform: translateY(-3px); background: var(--accent-hover); }
+
+        footer {
+            background: var(--accent);
+            height: 25px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: #fff;
+            justify-content: space-between;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
     </style>
 </head>
 <body>
 
-<div id="panic-screen">
-    <h1>Advanced Cryptography and Network Security</h1>
-    <p>Section 5.4: Implementations of asymmetric encryption in modern web environments...</p>
-</div>
-
 <div class="app" id="main-ui">
     <header>
-        <div>File &nbsp; Edit &nbsp; Selection &nbsp; <b>DanLab v3.0</b></div>
-        <div id="time">00:00</div>
+        <div style="display:flex; gap:20px; font-size:13px;">
+            <span style="font-weight:700; color:var(--accent);">DanLab PRO</span>
+            <span style="color:var(--text-dim);">File</span>
+            <span style="color:var(--text-dim);">Edit</span>
+            <span style="color:var(--text-dim);">Terminal</span>
+        </div>
+        <div id="time" style="font-weight:600; font-size:13px; opacity:0.7;">00:00</div>
     </header>
 
     <div class="main">
         <div class="explorer">
             <div class="explorer-header">
-                <span>EXPLORER</span>
-                <span class="new-file-btn" onclick="createNewFile()">+</span>
+                <span>PROJECT FILES</span>
+                <i data-lucide="plus-circle" style="width:16px; cursor:pointer;" onclick="createNewFile()"></i>
             </div>
             <div class="file-list" id="file-list"></div>
         </div>
@@ -65,29 +196,33 @@
         <div class="editor-container">
             <div class="tabs-bar" id="tabs-bar"></div>
             <textarea id="code-editor" spellcheck="false" oninput="saveCurrentFile()"></textarea>
-            <div class="toolbar">
-                <button onclick="executeCode()">▶ RUN CODE</button>
-            </div>
         </div>
 
         <div class="preview">
-            <div style="padding: 5px 10px; font-size: 11px; background: #333;">OUTPUT PREVIEW</div>
+            <div class="preview-header">LIVE CONSOLE & PREVIEW</div>
             <iframe id="output-view"></iframe>
         </div>
     </div>
 
+    <button class="run-btn" onclick="executeCode()">
+        <i data-lucide="play" style="width:18px;"></i> RUN SYSTEM
+    </button>
+
     <footer>
-        <div>DanScript Pro | Developer: Dan (13 y.o.)</div>
+        <div style="display:flex; gap:15px;">
+            <span><i data-lucide="cpu" style="width:12px; vertical-align:middle;"></i> DanScript 3.0</span>
+            <span><i data-lucide="user" style="width:12px; vertical-align:middle;"></i> Developer: Dan (13 y.o.)</span>
+        </div>
         <div id="file-info">main.ds</div>
     </footer>
 </div>
 
 <script>
-    // --- FILE SYSTEM LOGIC ---
-    let files = JSON.parse(localStorage.getItem('dan_files')) || {
-        "main.ds": "# Welcome to DanLab v3.0\nsize = 150\n\npanic.button.text(\"DANGER\")\npanic.button.color(\"red\")\n\ndraw.rect(20, 20, size, size, \"blue\")\nprint(\"System ready.\")"
-    };
-    let currentFile = Object.keys(files)[0];
+    // Инициализация иконок
+    lucide.createIcons();
+    
+    // Остальная твоя логика файлов и интерпретатора остается такой же, 
+    // но обнови функцию renderFiles(), чтобы она добавляла иконки:
 
     function renderFiles() {
         const list = document.getElementById('file-list');
@@ -96,123 +231,20 @@
         tabs.innerHTML = '';
 
         Object.keys(files).forEach(name => {
-            // Sidebar item
             const item = document.createElement('div');
             item.className = `file-item ${name === currentFile ? 'active' : ''}`;
-            item.innerHTML = `📄 ${name}`;
+            item.innerHTML = `<i data-lucide="file-code" style="width:14px;"></i> ${name}`;
             item.onclick = () => switchFile(name);
             list.appendChild(item);
 
-            // Tab item
             const tab = document.createElement('div');
             tab.className = `tab ${name === currentFile ? 'active' : ''}`;
-            tab.innerHTML = name;
+            tab.innerHTML = `<i data-lucide="file-json" style="width:12px;"></i> ${name}`;
             tab.onclick = () => switchFile(name);
             tabs.appendChild(tab);
         });
+        lucide.createIcons(); // Перерисовать иконки
     }
-
-    function switchFile(name) {
-        currentFile = name;
-        document.getElementById('code-editor').value = files[name];
-        document.getElementById('file-info').innerText = name;
-        renderFiles();
-    }
-
-    function createNewFile() {
-        const name = prompt("Enter file name (e.g. game.ds):");
-        if (name && !files[name]) {
-            files[name] = "# New Script";
-            switchFile(name);
-        }
-    }
-
-    function saveCurrentFile() {
-        files[currentFile] = document.getElementById('code-editor').value;
-        localStorage.setItem('dan_files', JSON.stringify(files));
-    }
-
-    // --- INTERPRETER LOGIC ---
-    function executeCode() {
-        const code = document.getElementById('code-editor').value;
-        const doc = document.getElementById('output-view').contentWindow.document;
-        
-        doc.open();
-        doc.write(`
-            <style>
-                body { background: #000; color: #0f0; font-family: monospace; padding: 15px; margin:0; }
-                canvas { border: 1px solid #333; margin-top: 10px; }
-                #panic-btn { position: fixed; bottom: 20px; right: 20px; padding: 12px; border: none; font-weight: bold; cursor: pointer; display:none; }
-            </style>
-            <div id="console"></div>
-            <canvas id="c" width="400" height="300"></canvas>
-            <button id="panic-btn"></button>
-            <script>
-                const ctx = document.getElementById('c').getContext('2d');
-                function log(t) { document.getElementById('console').innerHTML += "> " + t + "<br>"; }
-                document.getElementById('panic-btn').onclick = () => window.parent.togglePanic();
-            <\/script>
-        `);
-
-        const lines = code.split('\n');
-        let scope = {};
-
-        lines.forEach(line => {
-            line = line.trim();
-            if (!line || line.startsWith('#')) return;
-
-            try {
-                // ПЕРЕМЕННЫЕ
-                if (line.includes('=') && !line.includes('(')) {
-                    let [n, v] = line.split('=').map(s => s.trim());
-                    scope[n] = isNaN(v) ? v.replace(/"/g, '') : Number(v);
-                }
-                
-                // ПРИНТ
-                if (line.startsWith('print(')) {
-                    let val = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
-                    doc.getElementById('console').innerHTML += "> " + (scope[val] || val) + "<br>";
-                }
-
-                // УЛУЧШЕННЫЙ PANIC.BUTTON
-                if (line.startsWith('panic.button.text(')) {
-                    let t = line.match(/"([^"]+)"/)[1];
-                    const b = doc.getElementById('panic-btn');
-                    b.innerText = t; b.style.display = 'block';
-                }
-                if (line.startsWith('panic.button.color(')) {
-                    let c = line.match(/"([^"]+)"/)[1];
-                    doc.getElementById('panic-btn').style.backgroundColor = c;
-                }
-
-                // DRAW.RECT(x, y, w, h, color)
-                if (line.startsWith('draw.rect(')) {
-                    let args = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
-                    let p = args.map(a => scope[a] !== undefined ? scope[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
-                    const win = document.getElementById('output-view').contentWindow;
-                    win.ctx.fillStyle = p[4] || 'white';
-                    win.ctx.fillRect(p[0], p[1], p[2], p[3]);
-                }
-            } catch(e) {}
-        });
-        doc.close();
-    }
-
-    function togglePanic() {
-        const p = document.getElementById('panic-screen');
-        const ui = document.getElementById('main-ui');
-        const isHidden = p.style.display === 'none' || !p.style.display;
-        p.style.display = isHidden ? 'block' : 'none';
-        ui.style.display = isHidden ? 'none' : 'flex';
-    }
-
-    window.addEventListener('keydown', e => { if(e.key === 'Escape') togglePanic(); });
-    setInterval(() => { document.getElementById('time').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
-    
-    // Init
-    renderFiles();
-    switchFile(currentFile);
-    executeCode();
 </script>
 </body>
 </html>

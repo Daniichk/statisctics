@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DanLab IDE | DanScript Game Engine</title>
+    <title>DanLab IDE Pro | File Manager Edition</title>
     <script src="https://unpkg.com"></script>
     <style>
         :root {
@@ -19,7 +19,6 @@
         /* PANIC SCREEN */
         #panic-screen { display: none; background: white; color: black; padding: 60px 15%; height: 100vh; position: fixed; z-index: 9999; font-family: serif; width: 100%; box-sizing: border-box; }
         
-        /* UI LAYOUT */
         .app { display: flex; flex-direction: column; height: 100vh; }
         
         header { 
@@ -31,16 +30,25 @@
         .main { display: flex; flex: 1; overflow: hidden; }
 
         /* EXPLORER */
-        .explorer { width: 220px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .explorer-header { padding: 15px; font-size: 11px; font-weight: bold; color: #666; display: flex; justify-content: space-between; letter-spacing: 1px; }
-        .file-item { padding: 8px 15px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #888; transition: 0.2s; }
+        .explorer { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .explorer-header { padding: 15px; font-size: 11px; font-weight: bold; color: #666; display: flex; justify-content: space-between; letter-spacing: 1px; align-items: center; }
+        
+        .file-list { flex: 1; overflow-y: auto; }
+        .file-item { 
+            padding: 8px 15px; font-size: 13px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: space-between;
+            color: #888; transition: 0.2s; group;
+        }
         .file-item:hover { background: #1a1a1a; color: #fff; }
         .file-item.active { background: rgba(0, 120, 212, 0.1); color: var(--accent); border-left: 3px solid var(--accent); }
+        .file-actions { display: none; gap: 8px; }
+        .file-item:hover .file-actions { display: flex; }
+        .file-actions i:hover { color: #ff4444; }
 
         /* EDITOR */
         .editor-zone { flex: 1; display: flex; flex-direction: column; background: var(--editor-bg); }
-        .tabs { background: var(--sidebar); height: 35px; display: flex; border-bottom: 1px solid var(--border); }
-        .tab { padding: 0 15px; display: flex; align-items: center; font-size: 12px; color: #666; border-right: 1px solid var(--border); cursor: pointer; }
+        .tabs { background: var(--sidebar); height: 35px; display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; }
+        .tab { padding: 0 15px; display: flex; align-items: center; font-size: 12px; color: #666; border-right: 1px solid var(--border); cursor: pointer; white-space: nowrap; }
         .tab.active { background: var(--editor-bg); color: #fff; border-top: 2px solid var(--accent); }
         
         textarea { flex: 1; background: transparent; color: #9cdcfe; border: none; padding: 25px; font-family: 'JetBrains Mono', monospace; font-size: 14px; outline: none; resize: none; line-height: 1.6; }
@@ -50,11 +58,13 @@
         .preview-header { padding: 10px 15px; font-size: 11px; background: #111; color: #555; border-bottom: 1px solid var(--border); }
         iframe { flex: 1; border: none; background: #000; }
 
-        /* FLOATING RUN BUTTON */
         .run-btn { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 100; transition: 0.3s; }
         .run-btn:hover { transform: scale(1.05); background: #005a9e; }
 
         footer { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 15px; color: white; justify-content: space-between; }
+        
+        /* Tooltip for Rename */
+        .rename-hint { font-size: 10px; color: #444; padding: 5px 15px; }
     </style>
 </head>
 <body>
@@ -68,16 +78,20 @@
 <div class="app" id="main-ui">
     <header>
         <div style="display:flex; gap:20px;">
-            <b style="color:var(--accent)">DanLab PRO</b>
-            <span style="opacity:0.5">File &nbsp; Edit &nbsp; Run</span>
+            <b style="color:var(--accent)">DanLab PRO v5.0</b>
+            <span style="opacity:0.5">File &nbsp; Edit &nbsp; Selection</span>
         </div>
-        <div id="clock" style="opacity:0.5">00:00</div>
+        <div id="clock" style="opacity:0.8; font-weight: bold;">00:00</div>
     </header>
 
     <div class="main">
         <div class="explorer">
-            <div class="explorer-header">PROJECT FILES <i data-lucide="plus" style="width:14px; cursor:pointer;" onclick="createNewFile()"></i></div>
-            <div id="file-list"></div>
+            <div class="explorer-header">
+                <span>PROJECT FILES</span>
+                <i data-lucide="file-plus" style="width:16px; cursor:pointer;" onclick="createNewFile()"></i>
+            </div>
+            <div id="file-list" class="file-list"></div>
+            <div class="rename-hint">Tip: Double click file to rename</div>
         </div>
 
         <div class="editor-zone">
@@ -86,7 +100,7 @@
         </div>
 
         <div class="preview-zone">
-            <div class="preview-header">DAN-ENGINE v4.0 OUTPUT</div>
+            <div class="preview-header">DAN-ENGINE OUTPUT</div>
             <iframe id="output-view"></iframe>
         </div>
     </div>
@@ -96,36 +110,106 @@
     </button>
 
     <footer>
-        <div>Engine: DanScript 4.0 | Developer: Dan (13 y.o.)</div>
-        <div id="file-info">main.ds</div>
+        <div>Engine: DanScript 5.0 | Developer: Dan (13 y.o.)</div>
+        <div id="file-info">no file open</div>
     </footer>
 </div>
 
 <script>
     lucide.createIcons();
 
-    // FILE SYSTEM
-    let files = JSON.parse(localStorage.getItem('dan_v4_files')) || {
-        "main.ds": "# DanScript v4.0\n# Game Spawn Test\n\nchar.name = \"Hero\"\nchar.color = \"cyan\"\n\nspawn.character(\"boy\")\nchar.say(\"I am alive in DanScript!\")\n\ndraw.rect(10, 10, 100, 100, \"blue\")\nprint(\"System ready.\")"
+    // --- FILE SYSTEM (v5.0) ---
+    let files = JSON.parse(localStorage.getItem('dan_v5_files')) || {
+        "main.ds": "# DanScript v5.0\nspawn.character(\"robot\")\nchar.say(\"Files system is ready!\")\n\ndraw.rect(50, 50, 100, 100, \"blue\")",
+        "example.ds": "# Testing rename\nprint(\"Double click file name to rename it!\")"
     };
-    let currentFile = Object.keys(files)[0];
+    
+    let currentFile = localStorage.getItem('dan_last_file') || Object.keys(files)[0];
 
     function renderFiles() {
         const list = document.getElementById('file-list');
         const tabs = document.getElementById('tabs-bar');
         list.innerHTML = ''; tabs.innerHTML = '';
+        
         Object.keys(files).forEach(name => {
-            list.innerHTML += `<div class="file-item ${name===currentFile?'active':''}" onclick="switchFile('${name}')"><i data-lucide="file-code" style="width:14px;"></i> ${name}</div>`;
-            tabs.innerHTML += `<div class="tab ${name===currentFile?'active':''}" onclick="switchFile('${name}')">${name}</div>`;
+            // Sidebar item
+            const item = document.createElement('div');
+            item.className = `file-item ${name === currentFile ? 'active' : ''}`;
+            item.innerHTML = `
+                <div style="display:flex; align-items:center; gap:8px;" ondblclick="renameFile('${name}')">
+                    <i data-lucide="file-code" style="width:14px;"></i>
+                    <span>${name}</span>
+                </div>
+                <div class="file-actions">
+                    <i data-lucide="trash-2" style="width:12px;" onclick="deleteFile('${name}', event)"></i>
+                </div>
+            `;
+            item.onclick = (e) => { if(e.target.tagName !== 'I') switchFile(name); };
+            list.appendChild(item);
+
+            // Tab item
+            const tab = document.createElement('div');
+            tab.className = `tab ${name === currentFile ? 'active' : ''}`;
+            tab.innerHTML = name;
+            tab.onclick = () => switchFile(name);
+            tabs.appendChild(tab);
         });
         lucide.createIcons();
     }
 
-    function switchFile(name) { currentFile = name; document.getElementById('code-editor').value = files[name]; renderFiles(); }
-    function createNewFile() { let n = prompt("File name:"); if(n) { files[n] = "# New Script"; switchFile(n); } }
-    function saveCurrentFile() { files[currentFile] = document.getElementById('code-editor').value; localStorage.setItem('dan_v4_files', JSON.stringify(files)); }
+    function switchFile(name) {
+        currentFile = name;
+        localStorage.setItem('dan_last_file', name);
+        document.getElementById('code-editor').value = files[name] || "";
+        document.getElementById('file-info').innerText = name;
+        renderFiles();
+    }
 
-    // INTERPRETER
+    function createNewFile() {
+        let name = prompt("New file name (e.g. game.ds):");
+        if(name) {
+            if(!name.endsWith('.ds')) name += '.ds';
+            files[name] = "# New Script\n";
+            switchFile(name);
+        }
+    }
+
+    function deleteFile(name, event) {
+        event.stopPropagation();
+        if(Object.keys(files).length <= 1) return alert("Cannot delete the last file!");
+        if(confirm(`Delete ${name}?`)) {
+            delete files[name];
+            if(currentFile === name) currentFile = Object.keys(files)[0];
+            saveAll();
+            renderFiles();
+            switchFile(currentFile);
+        }
+    }
+
+    function renameFile(oldName) {
+        let newName = prompt(`Rename ${oldName} to:`, oldName);
+        if(newName && newName !== oldName) {
+            if(!newName.endsWith('.ds')) newName += '.ds';
+            files[newName] = files[oldName];
+            delete files[oldName];
+            currentFile = newName;
+            saveAll();
+            switchFile(newName);
+        }
+    }
+
+    function saveCurrentFile() {
+        if(currentFile) {
+            files[currentFile] = document.getElementById('code-editor').value;
+            saveAll();
+        }
+    }
+
+    function saveAll() {
+        localStorage.setItem('dan_v5_files', JSON.stringify(files));
+    }
+
+    // --- INTERPRETER ---
     function executeDanScript() {
         const code = document.getElementById('code-editor').value;
         const ifr = document.getElementById('output-view');
@@ -157,55 +241,45 @@
             if(!line || line.startsWith('#')) return;
 
             try {
-                // VARIABLES & OBJECTS
                 if(line.includes('=') && !line.includes('(')) {
                     let [path, val] = line.split('=').map(s => s.trim());
                     scope[path] = isNaN(val) ? val.replace(/"/g, '') : Number(val);
                 }
-
-                // SPAWN CHARACTER
                 if(line.startsWith('spawn.character(')) {
-                    let type = line.match(/"([^"]+)"/)[1];
+                    let type = line.match(/"([^"]+)"/);
                     const icons = {"boy":"👦","girl":"👧","robot":"🤖","cat":"🐱"};
                     let char = doc.createElement('div');
                     char.id = 'main_char';
                     char.className = 'character';
                     char.style.left = scope["char.x"] + "px";
                     char.style.top = scope["char.y"] + "px";
-                    char.innerHTML = `<div id="bubble-container"></div><div style="filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5))">${icons[type]||'❓'}</div>`;
+                    char.innerHTML = `<div id="bubble-container"></div><div>${icons[type]||'❓'}</div>`;
                     doc.getElementById('world').appendChild(char);
                 }
-
-                // CHAR SAY
                 if(line.startsWith('char.say(')) {
-                    let txt = line.match(/"([^"]+)"/)[1];
+                    let txt = line.match(/"([^"]+)"/);
                     setTimeout(() => {
                         const b = doc.getElementById('bubble-container');
                         if(b) b.innerHTML = `<div class="bubble">${txt}</div>`;
                     }, 100);
                 }
-
-                // DRAW RECT
                 if(line.startsWith('draw.rect(')) {
-                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let p = line.match(/\(([^)]+)\)/).split(',').map(s => s.trim());
                     let args = p.map(a => scope[a] !== undefined ? scope[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
                     const win = ifr.contentWindow;
                     win.ctx.fillStyle = args[4] || 'white';
                     win.ctx.fillRect(args[0], args[1], args[2], args[3]);
                 }
-
-                // PRINT
                 if(line.startsWith('print(')) {
                     let raw = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
                     ifr.contentWindow.log(scope[raw] || raw);
                 }
-
             } catch(e) {}
         });
         doc.close();
     }
 
-    // PANIC LOGIC
+    // --- UTILS ---
     function togglePanic() {
         const ps = document.getElementById('panic-screen');
         const ui = document.getElementById('main-ui');
@@ -214,9 +288,16 @@
         ui.style.display = hidden ? 'none' : 'flex';
     }
 
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
+
     window.addEventListener('keydown', e => { if(e.key === 'Escape') togglePanic(); });
-    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
+    setInterval(updateClock, 1000);
     
+    // START
+    updateClock();
     renderFiles();
     switchFile(currentFile);
     executeDanScript();

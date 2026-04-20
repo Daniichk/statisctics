@@ -1,163 +1,204 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 <head>
     <meta charset="UTF-8">
-    <title>DanLab PRO | System Restore v5.2</title>
-    <script src="https://unpkg.com"></script>
+    <title>DanLab IDE | Ultra Syntax v6.0</title>
     <style>
-        :root { --bg: #0a0a0a; --sidebar: #121212; --border: #222; --accent: #0078d4; --text: #d4d4d4; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
-        #panic-screen { display: none; background: white; color: black; padding: 60px 15%; height: 100vh; position: fixed; z-index: 9999; width: 100%; box-sizing: border-box; }
+        :root { --bg: #050505; --sidebar: #0f0f0f; --accent: #0078d4; --border: #1a1a1a; --code: #9cdcfe; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Consolas', monospace; background: var(--bg); color: #888; overflow: hidden; }
+        
+        /* PANIC LAYER */
+        #panic-layer { display: none; background: white; color: black; padding: 40px; height: 100vh; position: fixed; z-index: 9999; width: 100%; box-sizing: border-box; font-family: serif; }
+        
+        /* UI */
         .app { display: flex; flex-direction: column; height: 100vh; }
-        header { background: #1e1e1e; height: 40px; display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid var(--border); justify-content: space-between; font-size: 13px; }
+        header { background: #111; height: 35px; display: flex; align-items: center; padding: 0 15px; border-bottom: 1px solid var(--border); justify-content: space-between; font-size: 12px; }
         .main { display: flex; flex: 1; overflow: hidden; }
-        .explorer { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        .explorer-header { padding: 15px; font-size: 11px; font-weight: bold; color: #666; display: flex; justify-content: space-between; align-items: center; }
-        .file-list { flex: 1; overflow-y: auto; }
-        .file-item { padding: 10px 15px; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; color: #888; border-bottom: 1px solid #1a1a1a; }
-        .file-item.active { background: rgba(0, 120, 212, 0.1); color: var(--accent); border-left: 3px solid var(--accent); }
-        .editor-zone { flex: 1; display: flex; flex-direction: column; background: #0d0d0d; }
-        .tabs { background: var(--sidebar); height: 35px; display: flex; border-bottom: 1px solid var(--border); }
-        .tab { padding: 0 15px; display: flex; align-items: center; font-size: 12px; color: #666; border-right: 1px solid var(--border); cursor: pointer; }
-        .tab.active { background: #0d0d0d; color: #fff; border-top: 2px solid var(--accent); }
-        textarea { flex: 1; background: transparent; color: #9cdcfe; border: none; padding: 25px; font-family: 'JetBrains Mono', monospace; font-size: 14px; outline: none; resize: none; line-height: 1.6; }
-        .preview-zone { width: 45%; background: #000; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
+        
+        .explorer { width: 200px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .file-item { padding: 8px 15px; cursor: pointer; font-size: 13px; border-left: 2px solid transparent; }
+        .file-item.active { background: #1a1a1a; color: var(--accent); border-left-color: var(--accent); }
+        
+        .editor { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
+        textarea { flex: 1; background: transparent; color: var(--code); border: none; padding: 20px; font-size: 14px; outline: none; resize: none; line-height: 1.5; }
+        
+        .preview { width: 45%; background: #000; border-left: 1px solid var(--border); display: flex; flex-direction: column; }
         iframe { flex: 1; border: none; background: #000; }
-        .run-btn { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: bold; cursor: pointer; z-index: 100; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        footer { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 15px; color: white; justify-content: space-between; }
+        
+        .run-btn { position: fixed; bottom: 25px; right: 25px; background: var(--accent); color: #fff; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer; font-weight: bold; font-family: inherit; }
+        footer { background: var(--accent); height: 20px; font-size: 10px; color: #fff; display: flex; align-items: center; padding: 0 10px; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-<div id="panic-screen">
-    <h1>Restoration Mode: Academic Archive</h1>
-    <p>System files recovered successfully. Computational linguistics terminal active.</p>
+<div id="panic-layer">
+    <h1>Document Revision: 882-B</h1>
+    <p>Computational Theory and Recursive Algorithms. Analysis of interpreted syntax structures in localized environments...</p>
 </div>
 
-<div class="app" id="main-ui">
+<div class="app">
     <header>
-        <div><b style="color:var(--accent)">DanLab PRO v5.2</b> &nbsp; <span style="opacity:0.5">File Edit Run</span></div>
-        <div id="clock-display" style="font-weight:bold; color: #fff;">00:00</div>
+        <div><b>DanLab PRO v6.0</b> &nbsp; [Esc] to Panic</div>
+        <div id="clock">00:00</div>
     </header>
     <div class="main">
         <div class="explorer">
-            <div class="explorer-header">PROJECT FILES <i data-lucide="file-plus" style="width:16px; cursor:pointer;" onclick="createNewFile()"></i></div>
-            <div id="file-list" class="file-list"></div>
+            <div style="padding: 10px; font-size: 10px; opacity: 0.5;">WORKSPACE</div>
+            <div id="file-list"></div>
+            <button onclick="addFile()" style="margin: 10px; background: #222; color: #fff; border: none; padding: 5px; cursor: pointer; font-size: 10px;">+ NEW FILE</button>
         </div>
-        <div class="editor-zone">
-            <div class="tabs" id="tabs-bar"></div>
-            <textarea id="code-editor" spellcheck="false" oninput="saveCurrentFile()"></textarea>
-            <div style="padding: 10px; background: #1e1e1e; display: flex; gap: 10px;">
-                <button onclick="localStorage.clear(); location.reload();" style="background:#ff4444; color:white; border:none; padding:5px 10px; cursor:pointer; font-size:10px;">HARD RESET</button>
-                <span style="font-size:10px; color:#555;">(If files disappear, click Reset)</span>
-            </div>
+        <div class="editor">
+            <textarea id="editor" spellcheck="false"></textarea>
         </div>
-        <div class="preview-zone"><iframe id="output-view"></iframe></div>
+        <div class="preview">
+            <div style="padding: 5px 10px; font-size: 10px; background: #111;">RUNTIME_OUTPUT</div>
+            <iframe id="output"></iframe>
+        </div>
     </div>
-    <button class="run-btn" onclick="executeDanScript()">▶ RUN CODE</button>
+    <button class="run-btn" onclick="run()">▶ COMPILE & RUN</button>
     <footer>
-        <div>Engine: DanScript 5.2 | Developer: Dan (13 y.o.)</div>
-        <div id="file-info">Initializing...</div>
+        <div>DANSCRIPT_CORE_6.0</div>
+        <div id="status">Ready. Developer: Dan (13y.o)</div>
     </footer>
 </div>
 
 <script>
-    // Глобальные переменные
-    let files = {};
-    let currentFile = "";
+    // --- DATABASE & CORE ---
+    const DEFAULTS = {
+        "main.ds": "# DanScript v6.0\n# Продвинутый синтаксис\n\n# 1. Системные настройки\nsys.panic_button(\"ABORT\")\nsys.panic_color(\"red\")\n\n# 2. Переменные и Объекты\nplayer.x = 100\nplayer.y = 80\nplayer.size = 60\n\n# 3. Вывод\nprint(\"Initializing Engine...\")\nprint(\"Spawning Character...\")\n\n# 4. Графика и Персонажи\nspawn.bot(\"robot\", player.x, player.y)\nbot.say(\"Hello! I am v6.0\")\n\ndraw.rect(20, 280, 500, 20, \"green\")\ndraw.circle(400, 100, 30, \"yellow\")"
+    };
 
-    function startApp() {
-        lucide.createIcons();
-        
-        // 1. ПРИНУДИТЕЛЬНАЯ ЗАГРУЗКА
-        const savedData = localStorage.getItem('dan_v5_files');
-        if (!savedData || savedData === '{}') {
-            files = {
-                "main.ds": "# DanScript v5.2\nspawn.character(\"robot\")\nchar.say(\"System Restored!\")\n\nprint(\"Ready to code\")",
-                "hello.ds": "print(\"Hello world!\")"
-            };
-            localStorage.setItem('dan_v5_files', JSON.stringify(files));
-        } else {
-            files = JSON.parse(savedData);
-        }
+    let files = JSON.parse(localStorage.getItem('dan_v6')) || DEFAULTS;
+    let activeFile = Object.keys(files)[0];
 
-        currentFile = localStorage.getItem('dan_last_file') || Object.keys(files)[0];
-        
-        // 2. ЗАПУСК ЧАСОВ
-        updateClock();
-        setInterval(updateClock, 1000);
+    // --- INTERPRETER (THE BEAST) ---
+    function run() {
+        const code = document.getElementById('editor').value;
+        files[activeFile] = code;
+        localStorage.setItem('dan_v6', JSON.stringify(files));
 
-        renderFiles();
-        switchFile(currentFile);
-        executeDanScript();
-    }
-
-    function renderFiles() {
-        const list = document.getElementById('file-list');
-        const tabs = document.getElementById('tabs-bar');
-        list.innerHTML = ''; tabs.innerHTML = '';
-        
-        Object.keys(files).forEach(name => {
-            list.innerHTML += `<div class="file-item ${name === currentFile ? 'active' : ''}" onclick="switchFile('${name}')">📄 ${name}</div>`;
-            tabs.innerHTML += `<div class="tab ${name === currentFile ? 'active' : ''}" onclick="switchFile('${name}')">${name}</div>`;
-        });
-        lucide.createIcons();
-    }
-
-    function switchFile(name) {
-        if (!files[name]) name = Object.keys(files)[0];
-        currentFile = name;
-        localStorage.setItem('dan_last_file', name);
-        document.getElementById('code-editor').value = files[name];
-        document.getElementById('file-info').innerText = "Editing: " + name;
-        renderFiles();
-    }
-
-    function saveCurrentFile() {
-        files[currentFile] = document.getElementById('code-editor').value;
-        localStorage.setItem('dan_v5_files', JSON.stringify(files));
-    }
-
-    function createNewFile() {
-        let n = prompt("File name:");
-        if(n) { 
-            if(!n.endsWith('.ds')) n += '.ds';
-            files[n] = "# New Script"; 
-            switchFile(n); 
-            saveCurrentFile();
-        }
-    }
-
-    function updateClock() {
-        const clockEl = document.getElementById('clock-display');
-        if (clockEl) {
-            const now = new Date();
-            clockEl.innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        }
-    }
-
-    function executeDanScript() {
-        const code = document.getElementById('code-editor').value;
-        const doc = document.getElementById('output-view').contentWindow.document;
+        const doc = document.getElementById('output').contentWindow.document;
         doc.open();
-        doc.write('<style>body{background:#000;color:#0f0;font-family:monospace;padding:20px;} .robot{font-size:60px;}</style><div id="o"></div>');
-        if(code.includes('spawn.character("robot")')) doc.write('<div class="robot">🤖</div>');
-        if(code.includes('print')) doc.write('<div>> Script Active</div>');
+        doc.write(`
+            <style>
+                body { background: #000; color: #0f0; font-family: monospace; padding: 10px; margin: 0; overflow: hidden; }
+                canvas { border: 1px solid #222; display: block; margin-top: 10px; }
+                #log { font-size: 12px; height: 60px; overflow: hidden; color: #555; }
+                .bot { position: absolute; font-size: 50px; transition: 0.3s; display: flex; flex-direction: column; align-items: center; }
+                .bubble { background: #fff; color: #000; padding: 4px 8px; border-radius: 10px; font-size: 12px; font-weight: bold; margin-bottom: 5px; border: 2px solid #000; }
+                .p-btn { position: fixed; bottom: 10px; right: 10px; padding: 8px; border: none; font-weight: bold; cursor: pointer; display: none; }
+            </style>
+            <div id="log"></div>
+            <canvas id="cvs" width="600" height="400"></canvas>
+            <button id="p-btn"></button>
+            <script>
+                const ctx = document.getElementById('cvs').getContext('2d');
+                function _log(t) { document.getElementById('log').innerHTML += "> " + t + "<br>"; }
+                document.getElementById('p-btn').onclick = () => window.parent.panic();
+            <\/script>
+        `);
+
+        const lines = code.split('\n');
+        let memory = {};
+
+        lines.forEach(line => {
+            line = line.trim();
+            if(!line || line.startsWith('#')) return;
+
+            try {
+                // ПЕРЕМЕННЫЕ (x = 10 или obj.prop = 20)
+                if(line.includes('=') && !line.includes('(')) {
+                    let [key, val] = line.split('=').map(s => s.trim());
+                    memory[key] = isNaN(val) ? val.replace(/"/g, '') : Number(val);
+                }
+
+                // PRINT
+                if(line.startsWith('print(')) {
+                    let arg = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
+                    doc.write(`<script>_log("${memory[arg] || arg}");<\/script>`);
+                }
+
+                // SYS.PANIC
+                if(line.startsWith('sys.panic_button(')) {
+                    let t = line.match(/"([^"]+)"/)[1];
+                    const b = doc.getElementById('p-btn');
+                    b.innerText = t; b.style.display = 'block';
+                }
+                if(line.startsWith('sys.panic_color(')) {
+                    doc.getElementById('p-btn').style.background = line.match(/"([^"]+)"/)[1];
+                }
+
+                // SPAWN.BOT(type, x, y)
+                if(line.startsWith('spawn.bot(')) {
+                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let type = p[0].replace(/"/g, '');
+                    let x = memory[p[1]] || p[1];
+                    let y = memory[p[2]] || p[2];
+                    const icons = {"robot":"🤖","boy":"👦","cat":"🐱"};
+                    doc.write(`<div id="bot" class="bot" style="left:${x}px; top:${y}px;"><div id="msg"></div><div>${icons[type]||'❓'}</div></div>`);
+                }
+
+                // BOT.SAY
+                if(line.startsWith('bot.say(')) {
+                    let t = line.match(/"([^"]+)"/)[1];
+                    setTimeout(()=> { 
+                        const m = doc.getElementById('msg');
+                        if(m) m.innerHTML = `<div class="bubble">${t}</div>`;
+                    }, 50);
+                }
+
+                // DRAW.RECT(x, y, w, h, color)
+                if(line.startsWith('draw.rect(')) {
+                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let args = p.map(a => memory[a] !== undefined ? memory[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
+                    doc.write(`<script>ctx.fillStyle="${args[4]}"; ctx.fillRect(${args[0]},${args[1]},${args[2]},${args[3]});<\/script>`);
+                }
+
+                // DRAW.CIRCLE(x, y, r, color)
+                if(line.startsWith('draw.circle(')) {
+                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let args = p.map(a => memory[a] !== undefined ? memory[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
+                    doc.write(`<script>ctx.fillStyle="${args[3]}"; ctx.beginPath(); ctx.arc(${args[0]},${args[1]},${args[2]},0,Math.PI*2); ctx.fill();<\/script>`);
+                }
+
+            } catch(e) { console.log("DS Error: " + line); }
+        });
         doc.close();
     }
 
-    window.addEventListener('keydown', e => {
-        if(e.key === 'Escape') {
-            const p = document.getElementById('panic-screen');
-            const u = document.getElementById('main-ui');
-            const isH = p.style.display === 'none' || !p.style.display;
-            p.style.display = isH ? 'block' : 'none';
-            u.style.display = isH ? 'none' : 'flex';
-        }
-    });
+    // --- UI LOGIC ---
+    function update() {
+        const list = document.getElementById('file-list');
+        list.innerHTML = '';
+        Object.keys(files).forEach(name => {
+            const div = document.createElement('div');
+            div.className = `file-item ${name === activeFile ? 'active' : ''}`;
+            div.innerText = "📄 " + name;
+            div.onclick = () => { activeFile = name; update(); };
+            list.appendChild(div);
+        });
+        document.getElementById('editor').value = files[activeFile];
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+    }
 
-    // Прямой вызов после загрузки DOM
-    document.addEventListener('DOMContentLoaded', startApp);
+    function addFile() {
+        let n = prompt("Name:");
+        if(n) { if(!n.endsWith('.ds')) n+='.ds'; files[n] = "# New Script"; activeFile = n; update(); }
+    }
+
+    function panic() {
+        const p = document.getElementById('panic-layer');
+        const isH = p.style.display === 'none' || !p.style.display;
+        p.style.display = isH ? 'block' : 'none';
+    }
+
+    window.onkeydown = e => { if(e.key === 'Escape') panic(); };
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
+
+    // START
+    update();
+    run();
 </script>
+
 </body>
 </html>

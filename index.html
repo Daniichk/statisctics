@@ -2,249 +2,224 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DanLab Pro | Ultimate Edition</title>
-    <!-- Подключаем красивые иконки -->
+    <title>DanLab IDE | DanScript Game Engine</title>
     <script src="https://unpkg.com"></script>
     <style>
         :root {
-            --bg: #0d0d0d;
-            --sidebar: #151515;
+            --bg: #0a0a0a;
+            --sidebar: #121212;
+            --border: #222;
             --accent: #0078d4;
-            --accent-hover: #005a9e;
-            --border: #2b2b2b;
-            --text-main: #e1e1e1;
-            --text-dim: #858585;
+            --text: #d4d4d4;
+            --editor-bg: #0d0d0d;
         }
 
-        body, html {
-            margin: 0; padding: 0; height: 100%;
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg); color: var(--text-main);
-            overflow: hidden;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* --- UI UPGRADE --- */
+        /* PANIC SCREEN */
+        #panic-screen { display: none; background: white; color: black; padding: 60px 15%; height: 100vh; position: fixed; z-index: 9999; font-family: serif; width: 100%; box-sizing: border-box; }
+        
+        /* UI LAYOUT */
         .app { display: flex; flex-direction: column; height: 100vh; }
-
-        header {
-            background: rgba(30, 30, 30, 0.8);
-            backdrop-filter: blur(10px);
-            height: 45px;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border);
-            justify-content: space-between;
-            z-index: 100;
+        
+        header { 
+            background: rgba(25, 25, 25, 0.8); backdrop-filter: blur(10px); 
+            height: 40px; display: flex; align-items: center; padding: 0 20px; 
+            border-bottom: 1px solid var(--border); justify-content: space-between; font-size: 13px;
         }
 
-        .main { display: flex; flex: 1; overflow: hidden; background: var(--bg); }
+        .main { display: flex; flex: 1; overflow: hidden; }
 
-        /* Sidebar Explorer */
-        .explorer {
-            width: 240px;
-            background: var(--sidebar);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            transition: 0.3s;
-        }
-
-        .explorer-header {
-            padding: 15px 20px;
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-dim);
-            letter-spacing: 1px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .file-item {
-            padding: 8px 20px;
-            font-size: 13px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-dim);
-            transition: 0.2s;
-        }
-
-        .file-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        /* EXPLORER */
+        .explorer { width: 220px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .explorer-header { padding: 15px; font-size: 11px; font-weight: bold; color: #666; display: flex; justify-content: space-between; letter-spacing: 1px; }
+        .file-item { padding: 8px 15px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #888; transition: 0.2s; }
+        .file-item:hover { background: #1a1a1a; color: #fff; }
         .file-item.active { background: rgba(0, 120, 212, 0.1); color: var(--accent); border-left: 3px solid var(--accent); }
 
-        /* Editor Section */
-        .editor-container { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
+        /* EDITOR */
+        .editor-zone { flex: 1; display: flex; flex-direction: column; background: var(--editor-bg); }
+        .tabs { background: var(--sidebar); height: 35px; display: flex; border-bottom: 1px solid var(--border); }
+        .tab { padding: 0 15px; display: flex; align-items: center; font-size: 12px; color: #666; border-right: 1px solid var(--border); cursor: pointer; }
+        .tab.active { background: var(--editor-bg); color: #fff; border-top: 2px solid var(--accent); }
         
-        .tabs-bar {
-            background: var(--sidebar);
-            height: 40px;
-            display: flex;
-            border-bottom: 1px solid var(--border);
-        }
+        textarea { flex: 1; background: transparent; color: #9cdcfe; border: none; padding: 25px; font-family: 'JetBrains Mono', monospace; font-size: 14px; outline: none; resize: none; line-height: 1.6; }
 
-        .tab {
-            padding: 0 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: var(--text-dim);
-            border-right: 1px solid var(--border);
-            cursor: pointer;
-            background: #1a1a1a;
-        }
-
-        .tab.active { background: var(--bg); color: #fff; border-top: 2px solid var(--accent); }
-
-        textarea {
-            flex: 1;
-            background: transparent;
-            color: #9cdcfe;
-            border: none;
-            padding: 25px;
-            font-family: 'JetBrains Mono', 'Consolas', monospace;
-            font-size: 15px;
-            line-height: 1.6;
-            outline: none;
-            resize: none;
-        }
-
-        /* Preview Side */
-        .preview {
-            width: 45%;
-            background: #000;
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .preview-header {
-            padding: 10px 20px;
-            font-size: 11px;
-            background: #111;
-            color: var(--text-dim);
-            border-bottom: 1px solid var(--border);
-        }
-
+        /* PREVIEW */
+        .preview-zone { width: 45%; background: #000; border-left: 1px solid var(--border); display: flex; flex-direction: column; position: relative; }
+        .preview-header { padding: 10px 15px; font-size: 11px; background: #111; color: #555; border-bottom: 1px solid var(--border); }
         iframe { flex: 1; border: none; background: #000; }
 
-        /* Floating Run Button */
-        .run-btn {
-            position: fixed;
-            bottom: 40px;
-            right: 40px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 120, 212, 0.4);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 200;
-            transition: 0.3s;
-        }
+        /* FLOATING RUN BUTTON */
+        .run-btn { position: fixed; bottom: 30px; right: 30px; background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 50px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); z-index: 100; transition: 0.3s; }
+        .run-btn:hover { transform: scale(1.05); background: #005a9e; }
 
-        .run-btn:hover { transform: translateY(-3px); background: var(--accent-hover); }
-
-        footer {
-            background: var(--accent);
-            height: 25px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            padding: 0 20px;
-            color: #fff;
-            justify-content: space-between;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #444; }
+        footer { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 15px; color: white; justify-content: space-between; }
     </style>
 </head>
 <body>
 
+<div id="panic-screen">
+    <h1>Advanced Systems Architecture & Network Logic</h1>
+    <p>Exploring the fundamental principles of computational theory and interpreted languages in modern sandboxed environments.</p>
+    <p style="margin-top: 50px; color: #999;">[Press <b>ESC</b> twice to switch workspace]</p>
+</div>
+
 <div class="app" id="main-ui">
     <header>
-        <div style="display:flex; gap:20px; font-size:13px;">
-            <span style="font-weight:700; color:var(--accent);">DanLab PRO</span>
-            <span style="color:var(--text-dim);">File</span>
-            <span style="color:var(--text-dim);">Edit</span>
-            <span style="color:var(--text-dim);">Terminal</span>
+        <div style="display:flex; gap:20px;">
+            <b style="color:var(--accent)">DanLab PRO</b>
+            <span style="opacity:0.5">File &nbsp; Edit &nbsp; Run</span>
         </div>
-        <div id="time" style="font-weight:600; font-size:13px; opacity:0.7;">00:00</div>
+        <div id="clock" style="opacity:0.5">00:00</div>
     </header>
 
     <div class="main">
         <div class="explorer">
-            <div class="explorer-header">
-                <span>PROJECT FILES</span>
-                <i data-lucide="plus-circle" style="width:16px; cursor:pointer;" onclick="createNewFile()"></i>
-            </div>
-            <div class="file-list" id="file-list"></div>
+            <div class="explorer-header">PROJECT FILES <i data-lucide="plus" style="width:14px; cursor:pointer;" onclick="createNewFile()"></i></div>
+            <div id="file-list"></div>
         </div>
 
-        <div class="editor-container">
-            <div class="tabs-bar" id="tabs-bar"></div>
+        <div class="editor-zone">
+            <div class="tabs" id="tabs-bar"></div>
             <textarea id="code-editor" spellcheck="false" oninput="saveCurrentFile()"></textarea>
         </div>
 
-        <div class="preview">
-            <div class="preview-header">LIVE CONSOLE & PREVIEW</div>
+        <div class="preview-zone">
+            <div class="preview-header">DAN-ENGINE v4.0 OUTPUT</div>
             <iframe id="output-view"></iframe>
         </div>
     </div>
 
-    <button class="run-btn" onclick="executeCode()">
-        <i data-lucide="play" style="width:18px;"></i> RUN SYSTEM
+    <button class="run-btn" onclick="executeDanScript()">
+        <i data-lucide="play" style="width:16px;"></i> RUN CODE
     </button>
 
     <footer>
-        <div style="display:flex; gap:15px;">
-            <span><i data-lucide="cpu" style="width:12px; vertical-align:middle;"></i> DanScript 3.0</span>
-            <span><i data-lucide="user" style="width:12px; vertical-align:middle;"></i> Developer: Dan (13 y.o.)</span>
-        </div>
+        <div>Engine: DanScript 4.0 | Developer: Dan (13 y.o.)</div>
         <div id="file-info">main.ds</div>
     </footer>
 </div>
 
 <script>
-    // Инициализация иконок
     lucide.createIcons();
-    
-    // Остальная твоя логика файлов и интерпретатора остается такой же, 
-    // но обнови функцию renderFiles(), чтобы она добавляла иконки:
+
+    // FILE SYSTEM
+    let files = JSON.parse(localStorage.getItem('dan_v4_files')) || {
+        "main.ds": "# DanScript v4.0\n# Game Spawn Test\n\nchar.name = \"Hero\"\nchar.color = \"cyan\"\n\nspawn.character(\"boy\")\nchar.say(\"I am alive in DanScript!\")\n\ndraw.rect(10, 10, 100, 100, \"blue\")\nprint(\"System ready.\")"
+    };
+    let currentFile = Object.keys(files)[0];
 
     function renderFiles() {
         const list = document.getElementById('file-list');
         const tabs = document.getElementById('tabs-bar');
-        list.innerHTML = '';
-        tabs.innerHTML = '';
-
+        list.innerHTML = ''; tabs.innerHTML = '';
         Object.keys(files).forEach(name => {
-            const item = document.createElement('div');
-            item.className = `file-item ${name === currentFile ? 'active' : ''}`;
-            item.innerHTML = `<i data-lucide="file-code" style="width:14px;"></i> ${name}`;
-            item.onclick = () => switchFile(name);
-            list.appendChild(item);
-
-            const tab = document.createElement('div');
-            tab.className = `tab ${name === currentFile ? 'active' : ''}`;
-            tab.innerHTML = `<i data-lucide="file-json" style="width:12px;"></i> ${name}`;
-            tab.onclick = () => switchFile(name);
-            tabs.appendChild(tab);
+            list.innerHTML += `<div class="file-item ${name===currentFile?'active':''}" onclick="switchFile('${name}')"><i data-lucide="file-code" style="width:14px;"></i> ${name}</div>`;
+            tabs.innerHTML += `<div class="tab ${name===currentFile?'active':''}" onclick="switchFile('${name}')">${name}</div>`;
         });
-        lucide.createIcons(); // Перерисовать иконки
+        lucide.createIcons();
     }
+
+    function switchFile(name) { currentFile = name; document.getElementById('code-editor').value = files[name]; renderFiles(); }
+    function createNewFile() { let n = prompt("File name:"); if(n) { files[n] = "# New Script"; switchFile(n); } }
+    function saveCurrentFile() { files[currentFile] = document.getElementById('code-editor').value; localStorage.setItem('dan_v4_files', JSON.stringify(files)); }
+
+    // INTERPRETER
+    function executeDanScript() {
+        const code = document.getElementById('code-editor').value;
+        const ifr = document.getElementById('output-view');
+        const doc = ifr.contentWindow.document;
+        
+        doc.open();
+        doc.write(`
+            <style>
+                body { background: #000; color: #0f0; font-family: 'JetBrains Mono', monospace; padding: 20px; margin: 0; overflow: hidden; }
+                #console { height: 60px; border-bottom: 1px solid #222; margin-bottom: 15px; font-size: 12px; overflow: hidden; }
+                canvas { border: 1px solid #333; display: block; }
+                .character { position: absolute; font-size: 60px; transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); display: flex; flex-direction: column; align-items: center; }
+                .bubble { background: white; color: black; padding: 5px 12px; border-radius: 15px; font-size: 14px; font-weight: bold; margin-bottom: 10px; border: 2px solid #000; white-space: nowrap; }
+            </style>
+            <div id="console"></div>
+            <canvas id="canvas" width="600" height="400"></canvas>
+            <div id="world"></div>
+            <script>
+                const ctx = document.getElementById('canvas').getContext('2d');
+                function log(t) { document.getElementById('console').innerHTML += "> " + t + "<br>"; }
+            <\/script>
+        `);
+
+        const lines = code.split('\n');
+        let scope = { "char.x": 250, "char.y": 180 };
+
+        lines.forEach(line => {
+            line = line.trim();
+            if(!line || line.startsWith('#')) return;
+
+            try {
+                // VARIABLES & OBJECTS
+                if(line.includes('=') && !line.includes('(')) {
+                    let [path, val] = line.split('=').map(s => s.trim());
+                    scope[path] = isNaN(val) ? val.replace(/"/g, '') : Number(val);
+                }
+
+                // SPAWN CHARACTER
+                if(line.startsWith('spawn.character(')) {
+                    let type = line.match(/"([^"]+)"/)[1];
+                    const icons = {"boy":"👦","girl":"👧","robot":"🤖","cat":"🐱"};
+                    let char = doc.createElement('div');
+                    char.id = 'main_char';
+                    char.className = 'character';
+                    char.style.left = scope["char.x"] + "px";
+                    char.style.top = scope["char.y"] + "px";
+                    char.innerHTML = `<div id="bubble-container"></div><div style="filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5))">${icons[type]||'❓'}</div>`;
+                    doc.getElementById('world').appendChild(char);
+                }
+
+                // CHAR SAY
+                if(line.startsWith('char.say(')) {
+                    let txt = line.match(/"([^"]+)"/)[1];
+                    setTimeout(() => {
+                        const b = doc.getElementById('bubble-container');
+                        if(b) b.innerHTML = `<div class="bubble">${txt}</div>`;
+                    }, 100);
+                }
+
+                // DRAW RECT
+                if(line.startsWith('draw.rect(')) {
+                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let args = p.map(a => scope[a] !== undefined ? scope[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
+                    const win = ifr.contentWindow;
+                    win.ctx.fillStyle = args[4] || 'white';
+                    win.ctx.fillRect(args[0], args[1], args[2], args[3]);
+                }
+
+                // PRINT
+                if(line.startsWith('print(')) {
+                    let raw = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
+                    ifr.contentWindow.log(scope[raw] || raw);
+                }
+
+            } catch(e) {}
+        });
+        doc.close();
+    }
+
+    // PANIC LOGIC
+    function togglePanic() {
+        const ps = document.getElementById('panic-screen');
+        const ui = document.getElementById('main-ui');
+        const hidden = ps.style.display === 'none' || !ps.style.display;
+        ps.style.display = hidden ? 'block' : 'none';
+        ui.style.display = hidden ? 'none' : 'flex';
+    }
+
+    window.addEventListener('keydown', e => { if(e.key === 'Escape') togglePanic(); });
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
+    
+    renderFiles();
+    switchFile(currentFile);
+    executeDanScript();
 </script>
 </body>
 </html>

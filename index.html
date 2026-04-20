@@ -2,212 +2,175 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DanLab - DanScript IDE v2.0</title>
+    <title>DanLab IDE | DanScript Engine</title>
     <style>
-        :root {
-            --bg: #1e1e1e;
-            --sidebar: #252526;
-            --activity-bar: #2c2c2c;
-            --accent: #007acc;
-            --text: #cccccc;
-        }
-
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
-
-        /* --- FAKE SCREEN (PANIC LEVEL 2) --- */
-        #fake-screen { display: none; background: white; color: #333; padding: 60px 15%; height: 100vh; overflow-y: auto; box-sizing: border-box; z-index: 9999; position: fixed; top: 0; left: 0; width: 100%; }
-        #fake-screen h1 { border-bottom: 2px solid #eee; }
-
-        /* --- APP STRUCTURE --- */
-        .app-container { display: flex; flex-direction: column; height: 100vh; }
+        :root { --bg: #1e1e1e; --sidebar: #252526; --accent: #007acc; --text: #d4d4d4; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Consolas', monospace; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        header { background: #3c3c3c; height: 30px; display: flex; align-items: center; padding: 0 10px; font-size: 12px; justify-content: space-between; }
+        /* Panic Screen */
+        #panic-screen { display: none; background: white; color: black; padding: 50px; height: 100vh; position: fixed; z-index: 9999; font-family: serif; }
+        
+        /* UI Layout */
+        .app { display: flex; flex-direction: column; height: 100vh; }
+        header { background: #333; height: 30px; display: flex; align-items: center; padding: 0 15px; font-size: 12px; border-bottom: 1px solid #111; justify-content: space-between; }
         .main { display: flex; flex: 1; }
-
-        .activity-bar { width: 48px; background: var(--activity-bar); display: flex; flex-direction: column; align-items: center; padding-top: 15px; gap: 20px; }
-        .explorer { width: 200px; background: var(--sidebar); border-right: 1px solid #111; padding: 10px; font-size: 11px; }
-
-        .editor-side { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
-        .tabs { background: var(--sidebar); height: 35px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; }
+        .explorer { width: 180px; background: var(--sidebar); border-right: 1px solid #111; padding: 10px; font-size: 12px; }
+        .editor-container { flex: 1; display: flex; flex-direction: column; }
+        textarea { flex: 1; background: var(--bg); color: #9cdcfe; border: none; padding: 20px; font-size: 14px; outline: none; resize: none; border-right: 1px solid #333; }
+        .preview { flex: 1; background: #000; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
         
-        textarea { flex: 1; background: var(--bg); color: #9cdcfe; border: none; padding: 20px; font-family: 'Consolas', monospace; font-size: 14px; outline: none; resize: none; }
-
-        /* --- PREVIEW SIDE --- */
-        .preview-side { flex: 1; background: #000; display: flex; flex-direction: column; }
-        iframe { flex: 1; border: none; background: #000; }
-
-        /* --- CONTROLS --- */
-        .controls { background: #1e1e1e; padding: 10px; border-top: 1px solid #333; display: flex; gap: 10px; }
-        button { background: var(--accent); color: white; border: none; padding: 6px 15px; cursor: pointer; border-radius: 2px; font-size: 12px; font-weight: bold; }
+        /* Controls */
+        .toolbar { background: #1e1e1e; padding: 10px; border-top: 1px solid #333; display: flex; gap: 10px; align-items: center; }
+        button { background: var(--accent); color: white; border: none; padding: 8px 15px; cursor: pointer; font-weight: bold; border-radius: 2px; }
         button:hover { background: #005a9e; }
-        .status { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 10px; justify-content: space-between; }
+        footer { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 10px; color: white; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-    <!-- FAKE SCREEN -->
-    <div id="fake-screen">
-        <h1>Research Document: Python Compiler Architecture</h1>
-        <p>The study of lexical analysis involves the process of converting a sequence of characters into a sequence of tokens. This is a fundamental part of a compiler's front end...</p>
-        <p>[Press <b>ESC</b> twice to switch mode]</p>
-    </div>
+<div id="panic-screen">
+    <h1>Analysis of Quantum Computing Algorithms</h1>
+    <p>In this paper, we explore the implications of Shor's algorithm on modern RSA encryption methods...</p>
+    <p style="margin-top: 50px; color: #888;">[Press ESC to return to work]</p>
+</div>
 
-    <div class="app-container" id="app-ui">
-        <header>
-            <div>File &nbsp; Edit &nbsp; Run &nbsp; Terminal</div>
-            <div>DanScript IDE - index.ds</div>
-            <div id="clock">12:00</div>
-        </header>
+<div class="app" id="main-ui">
+    <header>
+        <div>File &nbsp; Edit &nbsp; Selection &nbsp; <b>Run</b></div>
+        <div>DanLab IDE v2.0 - main.ds</div>
+        <div id="time">00:00</div>
+    </header>
 
-        <div class="main">
-            <div class="activity-bar"><span>📄</span><span>🔍</span><span>⚙️</span></div>
-            <div class="explorer">
-                <b>EXPLORER</b>
-                <div style="margin-top:10px; color:#fff">▼ Project_Dan</div>
-                <div style="padding-left:10px; color:#9cdcfe">index.ds</div>
-            </div>
+    <div class="main">
+        <div class="explorer">
+            <b style="color: #555;">EXPLORER</b>
+            <div style="margin-top:10px; color: #fff;">▼ PROJECT_ALPHA</div>
+            <div style="margin-left: 10px; color: #9cdcfe;">⚡ main.ds</div>
+        </div>
 
-            <div class="editor-side">
-                <div class="tabs">index.ds</div>
-                <textarea id="codeEditor" spellcheck="false"></textarea>
-                <div class="controls">
-                    <button onclick="runDanScript()">▶ RUN DANSCRIPT (F5)</button>
-                    <span style="font-size: 10px; color:#666; padding-top:5px;">ESC: Hide/Show panic mode</span>
-                </div>
-            </div>
-
-            <div class="preview-side">
-                <div class="tabs">Output Preview</div>
-                <iframe id="outputIframe"></iframe>
+        <div class="editor-container">
+            <textarea id="code-editor" spellcheck="false"></textarea>
+            <div class="toolbar">
+                <button onclick="executeCode()">▶ RUN DANSCRIPT</button>
+                <span style="font-size: 10px; color: #555;">Press ESC for Panic Mode</span>
             </div>
         </div>
 
-        <div class="status">
-            <div>DanScript Engine Active</div>
-            <div>UTF-8 | Line 1, Col 1</div>
+        <div class="preview">
+            <iframe id="output-view"></iframe>
         </div>
     </div>
 
-    <script>
-        const editor = document.getElementById('codeEditor');
-        const iframe = document.getElementById('outputIframe');
-        
-        // Пример кода на твоем языке DanScript
-        const initialCode = `# Welcome to DanScript!
-speed = 150
-print("System Initialized...")
-print("Drawing Graphics...")
+    <footer>
+        <div>Engine: DanScript 0.2 | Status: Operational</div>
+        <div>Developer: Dan (13 y.o.) | UTF-8</div>
+    </footer>
+</div>
 
-draw.rect(50, 50, speed, 100, "blue")
-draw.circle(200, 200, 50, "red")
+<script>
+    const editor = document.getElementById('code-editor');
+    const iframe = document.getElementById('output-view');
 
-panic.button("ABORT MISSION")`;
+    // Твой новый крутой синтаксис (Python-style)
+    const welcomeCode = `# DanScript v0.2
+# Создаем переменные
+size = 120
+color = "blue"
 
-        editor.value = localStorage.getItem('dan_code') || initialCode;
+# Вывод в консоль
+print("Starting DanScript Engine...")
+print("Drawing your objects...")
 
-        function runDanScript() {
-            const code = editor.value;
-            localStorage.setItem('dan_code', code);
-            
-            const lines = code.split('\n');
-            let vars = {};
+# Графика
+draw.rect(40, 40, size, size, color)
+draw.circle(200, 150, 60, "red")
 
-            // Базовый HTML для вывода внутри iframe
-            let outputHTML = `
-                <style>
-                    body { background: #000; color: #0f0; font-family: monospace; margin: 20px; overflow: hidden; }
-                    canvas { border: 1px solid #333; margin-top: 10px; display: block; }
-                    #console { margin-bottom: 10px; height: 100px; overflow-y: auto; }
-                    button { background: red; color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold; position: fixed; bottom: 10px; right: 10px; }
-                </style>
-                <div id="console"></div>
-                <canvas id="cvs" width="400" height="300"></canvas>
-                <script>
-                    const ctx = document.getElementById('cvs').getContext('2d');
-                    function log(t) { document.getElementById('console').innerHTML += "> " + t + "<br>"; }
-                <\/script>
-            `;
+# Твоя главная фишка
+panic.button("EXIT NOW")`;
 
-            const doc = iframe.contentWindow.document;
-            doc.open();
-            doc.write(outputHTML);
-            
-            // ИНТЕРПРЕТАТОР DANSCRIPT
-            lines.forEach(line => {
-                line = line.trim();
-                if (!line || line.startsWith('#')) return;
+    editor.value = localStorage.getItem('dan_code') || welcomeCode;
 
-                // 1. Переменные (speed = 10)
+    function executeCode() {
+        const code = editor.value;
+        localStorage.setItem('dan_code', code);
+
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`
+            <style>
+                body { background: #000; color: #0f0; font-family: monospace; padding: 15px; margin: 0; }
+                #console { color: #0f0; height: 80px; overflow: hidden; border-bottom: 1px solid #222; margin-bottom: 10px; }
+                canvas { display: block; border: 1px solid #333; }
+                .panic-btn { position: fixed; bottom: 15px; right: 15px; background: red; color: white; border: none; padding: 10px; font-weight: bold; cursor: pointer; }
+            </style>
+            <div id="console"></div>
+            <canvas id="c" width="500" height="400"></canvas>
+            <script>
+                const ctx = document.getElementById('c').getContext('2d');
+                function log(t) { document.getElementById('console').innerHTML += "> " + t + "<br>"; }
+            <\/script>
+        `);
+
+        const lines = code.split('\n');
+        let scope = {}; // Память языка (переменные)
+
+        lines.forEach(line => {
+            line = line.trim();
+            if (!line || line.startsWith('#')) return;
+
+            try {
+                // 1. ПЕРЕМЕННЫЕ (speed = 10)
                 if (line.includes('=') && !line.includes('(')) {
                     let [name, val] = line.split('=').map(s => s.trim());
-                    vars[name] = isNaN(val) ? val.replace(/"/g, '') : Number(val);
+                    scope[name] = isNaN(val) ? val.replace(/"/g, '') : Number(val);
                 }
 
-                // 2. print("text") или print(var)
+                // 2. PRINT()
                 if (line.startsWith('print(')) {
-                    let val = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
-                    let finalVal = vars[val] !== undefined ? vars[val] : val;
-                    iframe.contentWindow.log(finalVal);
+                    let raw = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
+                    let out = scope[raw] !== undefined ? scope[raw] : raw;
+                    iframe.contentWindow.log(out);
                 }
 
-                // 3. draw.rect(x, y, w, h, color)
+                // 3. DRAW.RECT(x, y, w, h, color)
                 if (line.startsWith('draw.rect(')) {
-                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
-                    let color = p[4] ? p[4].replace(/"/g, '') : 'white';
-                    // Заменяем переменные на значения
-                    let args = p.map(a => vars[a] !== undefined ? vars[a] : Number(a));
-                    iframe.contentWindow.ctx.fillStyle = color;
-                    iframe.contentWindow.ctx.fillRect(args[0], args[1], args[2], args[3]);
+                    let args = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let params = args.map(a => scope[a] !== undefined ? scope[a] : (isNaN(a) ? a.replace(/"/g, '') : Number(a)));
+                    let c = iframe.contentWindow;
+                    c.ctx.fillStyle = params[4] || 'white';
+                    c.ctx.fillRect(params[0], params[1], params[2], params[3]);
                 }
 
-                // 4. draw.circle(x, y, r, color)
-                if (line.startsWith('draw.circle(')) {
-                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
-                    let color = p[3] ? p[3].replace(/"/g, '') : 'white';
-                    let args = p.map(a => vars[a] !== undefined ? vars[a] : Number(a));
-                    iframe.contentWindow.ctx.fillStyle = color;
-                    iframe.contentWindow.ctx.beginPath();
-                    iframe.contentWindow.ctx.arc(args[0], args[1], args[2], 0, Math.PI*2);
-                    iframe.contentWindow.ctx.fill();
-                }
-
-                // 5. panic.button("text")
+                // 4. PANIC.BUTTON("text")
                 if (line.startsWith('panic.button(')) {
                     let txt = line.match(/"([^"]+)"/)[1];
                     let btn = doc.createElement('button');
+                    btn.className = 'panic-btn';
                     btn.innerText = txt;
-                    btn.onclick = () => { window.parent.triggerPanic(); };
+                    btn.onclick = () => { window.parent.togglePanic(); };
                     doc.body.appendChild(btn);
                 }
-            });
-            doc.close();
-        }
 
-        // PANIC LOGIC
-        function triggerPanic() {
-            document.getElementById('fake-screen').style.display = 'block';
-            document.getElementById('app-ui').style.display = 'none';
-        }
-
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const fake = document.getElementById('fake-screen');
-                const app = document.getElementById('app-ui');
-                if (fake.style.display === 'none') {
-                    triggerPanic();
-                } else {
-                    fake.style.display = 'none';
-                    app.style.display = 'flex';
-                }
-            }
+            } catch(e) { console.error("Syntax Error: " + line); }
         });
+        doc.close();
+    }
 
-        // Часы
-        setInterval(() => {
-            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        }, 1000);
+    // Panic System
+    function togglePanic() {
+        const p = document.getElementById('panic-screen');
+        const ui = document.getElementById('main-ui');
+        if (p.style.display === 'none' || !p.style.display) {
+            p.style.display = 'block'; ui.style.display = 'none';
+        } else {
+            p.style.display = 'none'; ui.style.display = 'flex';
+        }
+    }
 
-        runDanScript(); // Автозапуск при старте
-    </script>
+    window.addEventListener('keydown', e => { if(e.key === 'Escape') togglePanic(); });
+    setInterval(() => { document.getElementById('time').innerText = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }, 1000);
+    executeCode(); // Start on load
+</script>
 </body>
 </html>

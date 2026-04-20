@@ -2,184 +2,212 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Visual Studio Code - Workspace</title>
+    <title>DanLab - DanScript IDE v2.0</title>
     <style>
         :root {
             --bg: #1e1e1e;
-            --sidebar: #333333;
+            --sidebar: #252526;
             --activity-bar: #2c2c2c;
             --accent: #007acc;
             --text: #cccccc;
-            --tab-active: #1e1e1e;
-            --tab-inactive: #2d2d2d;
         }
 
         body, html { margin: 0; padding: 0; height: 100%; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* --- FAKE SCREEN (PANIC MODE) --- */
+        /* --- FAKE SCREEN (PANIC LEVEL 2) --- */
         #fake-screen { display: none; background: white; color: #333; padding: 60px 15%; height: 100vh; overflow-y: auto; box-sizing: border-box; z-index: 9999; position: fixed; top: 0; left: 0; width: 100%; }
-        #fake-screen h1 { color: #000; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        #fake-screen h1 { border-bottom: 2px solid #eee; }
 
-        /* --- FULLSCREEN GAME MODE --- */
-        #fullscreen-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 5000; }
-        #fs-iframe { width: 100%; height: 100%; border: none; }
-
-        /* --- VS CODE INTERFACE --- */
+        /* --- APP STRUCTURE --- */
         .app-container { display: flex; flex-direction: column; height: 100vh; }
+        
+        header { background: #3c3c3c; height: 30px; display: flex; align-items: center; padding: 0 10px; font-size: 12px; justify-content: space-between; }
+        .main { display: flex; flex: 1; }
 
-        /* Top Menu Bar */
-        .title-bar { background: #3c3c3c; height: 30px; display: flex; align-items: center; padding: 0 10px; font-size: 13px; color: #fff; justify-content: space-between; }
-        .menu-items span { margin-right: 15px; cursor: pointer; color: #bbb; }
-        .menu-items span:hover { color: #fff; }
-
-        .main-content { display: flex; flex: 1; }
-
-        /* Sidebar Icons */
         .activity-bar { width: 48px; background: var(--activity-bar); display: flex; flex-direction: column; align-items: center; padding-top: 15px; gap: 20px; }
-        .icon { width: 25px; height: 25px; opacity: 0.5; cursor: pointer; border-left: 2px solid transparent; }
-        .icon.active { opacity: 1; border-left: 2px solid #fff; }
+        .explorer { width: 200px; background: var(--sidebar); border-right: 1px solid #111; padding: 10px; font-size: 11px; }
 
-        /* Side Explorer */
-        .explorer { width: 200px; background: #252526; display: flex; flex-direction: column; font-size: 11px; text-transform: uppercase; padding: 10px; color: #888; border-right: 1px solid #111; }
-        .file-item { color: #ccc; text-transform: none; padding: 5px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
-        .file-item:hover { background: #37373d; }
+        .editor-side { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
+        .tabs { background: var(--sidebar); height: 35px; display: flex; align-items: center; padding-left: 10px; font-size: 12px; }
+        
+        textarea { flex: 1; background: var(--bg); color: #9cdcfe; border: none; padding: 20px; font-family: 'Consolas', monospace; font-size: 14px; outline: none; resize: none; }
 
-        /* Editor Area */
-        .editor-area { flex: 1; display: flex; flex-direction: column; }
-        .tabs { background: #252526; height: 35px; display: flex; }
-        .tab { background: var(--tab-inactive); padding: 0 20px; display: flex; align-items: center; font-size: 12px; border-right: 1px solid #111; cursor: pointer; }
-        .tab.active { background: var(--tab-active); color: #fff; border-top: 1px solid var(--accent); }
+        /* --- PREVIEW SIDE --- */
+        .preview-side { flex: 1; background: #000; display: flex; flex-direction: column; }
+        iframe { flex: 1; border: none; background: #000; }
 
-        textarea { flex: 1; background: var(--bg); color: #9cdcfe; border: none; padding: 20px; font-family: 'Consolas', 'Monaco', monospace; font-size: 14px; outline: none; resize: none; line-height: 1.5; }
-
-        /* Bottom Controls */
-        .controls { background: #1e1e1e; padding: 10px 20px; display: flex; gap: 10px; border-top: 1px solid #333; }
-        .btn-run { background: #28a745; color: white; border: none; padding: 6px 20px; cursor: pointer; font-weight: bold; border-radius: 2px; }
-        .btn-run:hover { background: #218838; }
-
-        /* Footer */
-        footer { background: var(--accent); height: 22px; display: flex; align-items: center; padding: 0 10px; font-size: 11px; color: #fff; justify-content: space-between; }
+        /* --- CONTROLS --- */
+        .controls { background: #1e1e1e; padding: 10px; border-top: 1px solid #333; display: flex; gap: 10px; }
+        button { background: var(--accent); color: white; border: none; padding: 6px 15px; cursor: pointer; border-radius: 2px; font-size: 12px; font-weight: bold; }
+        button:hover { background: #005a9e; }
+        .status { background: var(--accent); height: 22px; font-size: 11px; display: flex; align-items: center; padding: 0 10px; justify-content: space-between; }
     </style>
 </head>
 <body>
 
-    <!-- 📑 FAKE SCREEN (Level 2) -->
+    <!-- FAKE SCREEN -->
     <div id="fake-screen">
-        <h1>Theoretical Framework of Computational Linguistics</h1>
-        <p><i>Published: March 2024 | Academic Journal</i></p>
-        <p>Natural language processing (NLP) is a subfield of linguistics, computer science, and artificial intelligence concerned with the interactions between computers and human language, in particular how to program computers to process and analyze large amounts of natural language data.</p>
-        <p>The goal is a computer capable of "understanding" the contents of documents, including the contextual nuances of the language within them. The technology can then accurately extract information and insights contained in the documents as well as categorize and organize the documents themselves.</p>
-        <hr>
-        <p>Press <b>ESC</b> twice to return to developer workspace.</p>
+        <h1>Research Document: Python Compiler Architecture</h1>
+        <p>The study of lexical analysis involves the process of converting a sequence of characters into a sequence of tokens. This is a fundamental part of a compiler's front end...</p>
+        <p>[Press <b>ESC</b> twice to switch mode]</p>
     </div>
 
-    <!-- 🎮 FULLSCREEN OVERLAY (Level 1) -->
-    <div id="fullscreen-overlay">
-        <iframe id="fs-iframe"></iframe>
-    </div>
+    <div class="app-container" id="app-ui">
+        <header>
+            <div>File &nbsp; Edit &nbsp; Run &nbsp; Terminal</div>
+            <div>DanScript IDE - index.ds</div>
+            <div id="clock">12:00</div>
+        </header>
 
-    <!-- 💻 VS CODE UI -->
-    <div class="app-container" id="app">
-        <div class="title-bar">
-            <div class="menu-items">
-                <span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span><span>Run</span>
-            </div>
-            <div>index.html - Visual Studio Code</div>
-            <div>&nbsp;</div>
-        </div>
-
-        <div class="main-content">
-            <div class="activity-bar">
-                <div class="icon active">📄</div>
-                <div class="icon">🔍</div>
-                <div class="icon">🌿</div>
-                <div class="icon">🐞</div>
-            </div>
-
+        <div class="main">
+            <div class="activity-bar"><span>📄</span><span>🔍</span><span>⚙️</span></div>
             <div class="explorer">
-                Explorer
-                <div style="margin-top:15px"></div>
-                <div class="file-item">▼ PROJECT_ALPHA</div>
-                <div class="file-item" style="padding-left:20px">index.html</div>
-                <div class="file-item" style="padding-left:20px; opacity:0.5">style.css</div>
+                <b>EXPLORER</b>
+                <div style="margin-top:10px; color:#fff">▼ Project_Dan</div>
+                <div style="padding-left:10px; color:#9cdcfe">index.ds</div>
             </div>
 
-            <div class="editor-area">
-                <div class="tabs">
-                    <div class="tab active">index.html</div>
-                </div>
+            <div class="editor-side">
+                <div class="tabs">index.ds</div>
                 <textarea id="codeEditor" spellcheck="false"></textarea>
                 <div class="controls">
-                    <button class="btn-run" onclick="launchGame()">▶ START PROGRAM (F5)</button>
-                    <span style="font-size: 11px; color: #666; align-self: center;">Press ESC to exit fullscreen or hide app</span>
+                    <button onclick="runDanScript()">▶ RUN DANSCRIPT (F5)</button>
+                    <span style="font-size: 10px; color:#666; padding-top:5px;">ESC: Hide/Show panic mode</span>
                 </div>
+            </div>
+
+            <div class="preview-side">
+                <div class="tabs">Output Preview</div>
+                <iframe id="outputIframe"></iframe>
             </div>
         </div>
 
-        <footer>
-            <div>master* | 0 Errors | 0 Warnings</div>
-            <div>UTF-8 | JavaScript | Ln 1, Col 1</div>
-        </footer>
+        <div class="status">
+            <div>DanScript Engine Active</div>
+            <div>UTF-8 | Line 1, Col 1</div>
+        </div>
     </div>
 
     <script>
         const editor = document.getElementById('codeEditor');
-        const overlay = document.getElementById('fullscreen-overlay');
-        const iframe = document.getElementById('fs-iframe');
-        const fake = document.getElementById('fake-screen');
-        const app = document.getElementById('app');
+        const iframe = document.getElementById('outputIframe');
+        
+        // Пример кода на твоем языке DanScript
+        const initialCode = `# Welcome to DanScript!
+speed = 150
+print("System Initialized...")
+print("Drawing Graphics...")
 
-        // Стандартный начальный код
-        const defaultCode = `<!DOCTYPE html>
-<html>
-<style>
-  body { background: #000; color: #0f0; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: monospace; overflow: hidden; }
-  h1 { font-size: 50px; border: 2px solid #0f0; padding: 20px; }
-</style>
-<body>
-  <h1>SYSTEM ACTIVE</h1>
-  <script>
-    console.log("App Running...");
-  <\/script>
-</body>
-</html>`;
+draw.rect(50, 50, speed, 100, "blue")
+draw.circle(200, 200, 50, "red")
 
-        editor.value = localStorage.getItem('vs_code_save') || defaultCode;
+panic.button("ABORT MISSION")`;
 
-        // Запуск программы на весь экран
-        function launchGame() {
+        editor.value = localStorage.getItem('dan_code') || initialCode;
+
+        function runDanScript() {
             const code = editor.value;
-            overlay.style.display = 'block';
-            iframe.contentWindow.document.open();
-            iframe.contentWindow.document.write(code);
-            iframe.contentWindow.document.close();
+            localStorage.setItem('dan_code', code);
+            
+            const lines = code.split('\n');
+            let vars = {};
+
+            // Базовый HTML для вывода внутри iframe
+            let outputHTML = `
+                <style>
+                    body { background: #000; color: #0f0; font-family: monospace; margin: 20px; overflow: hidden; }
+                    canvas { border: 1px solid #333; margin-top: 10px; display: block; }
+                    #console { margin-bottom: 10px; height: 100px; overflow-y: auto; }
+                    button { background: red; color: white; border: none; padding: 10px; cursor: pointer; font-weight: bold; position: fixed; bottom: 10px; right: 10px; }
+                </style>
+                <div id="console"></div>
+                <canvas id="cvs" width="400" height="300"></canvas>
+                <script>
+                    const ctx = document.getElementById('cvs').getContext('2d');
+                    function log(t) { document.getElementById('console').innerHTML += "> " + t + "<br>"; }
+                <\/script>
+            `;
+
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(outputHTML);
+            
+            // ИНТЕРПРЕТАТОР DANSCRIPT
+            lines.forEach(line => {
+                line = line.trim();
+                if (!line || line.startsWith('#')) return;
+
+                // 1. Переменные (speed = 10)
+                if (line.includes('=') && !line.includes('(')) {
+                    let [name, val] = line.split('=').map(s => s.trim());
+                    vars[name] = isNaN(val) ? val.replace(/"/g, '') : Number(val);
+                }
+
+                // 2. print("text") или print(var)
+                if (line.startsWith('print(')) {
+                    let val = line.match(/\(([^)]+)\)/)[1].replace(/"/g, '');
+                    let finalVal = vars[val] !== undefined ? vars[val] : val;
+                    iframe.contentWindow.log(finalVal);
+                }
+
+                // 3. draw.rect(x, y, w, h, color)
+                if (line.startsWith('draw.rect(')) {
+                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let color = p[4] ? p[4].replace(/"/g, '') : 'white';
+                    // Заменяем переменные на значения
+                    let args = p.map(a => vars[a] !== undefined ? vars[a] : Number(a));
+                    iframe.contentWindow.ctx.fillStyle = color;
+                    iframe.contentWindow.ctx.fillRect(args[0], args[1], args[2], args[3]);
+                }
+
+                // 4. draw.circle(x, y, r, color)
+                if (line.startsWith('draw.circle(')) {
+                    let p = line.match(/\(([^)]+)\)/)[1].split(',').map(s => s.trim());
+                    let color = p[3] ? p[3].replace(/"/g, '') : 'white';
+                    let args = p.map(a => vars[a] !== undefined ? vars[a] : Number(a));
+                    iframe.contentWindow.ctx.fillStyle = color;
+                    iframe.contentWindow.ctx.beginPath();
+                    iframe.contentWindow.ctx.arc(args[0], args[1], args[2], 0, Math.PI*2);
+                    iframe.contentWindow.ctx.fill();
+                }
+
+                // 5. panic.button("text")
+                if (line.startsWith('panic.button(')) {
+                    let txt = line.match(/"([^"]+)"/)[1];
+                    let btn = doc.createElement('button');
+                    btn.innerText = txt;
+                    btn.onclick = () => { window.parent.triggerPanic(); };
+                    doc.body.appendChild(btn);
+                }
+            });
+            doc.close();
         }
 
-        // Логика клавиши ESC (Двухступенчатая защита)
+        // PANIC LOGIC
+        function triggerPanic() {
+            document.getElementById('fake-screen').style.display = 'block';
+            document.getElementById('app-ui').style.display = 'none';
+        }
+
         window.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                // 1. Если открыта игра - закрываем игру
-                if (overlay.style.display === 'block') {
-                    overlay.style.display = 'none';
-                    iframe.src = "about:blank";
-                } 
-                // 2. Если мы в редакторе - включаем фейковый экран
-                else {
-                    if (fake.style.display === 'none') {
-                        fake.style.display = 'block';
-                        app.style.display = 'none';
-                    } else {
-                        fake.style.display = 'none';
-                        app.style.display = 'flex';
-                    }
+                const fake = document.getElementById('fake-screen');
+                const app = document.getElementById('app-ui');
+                if (fake.style.display === 'none') {
+                    triggerPanic();
+                } else {
+                    fake.style.display = 'none';
+                    app.style.display = 'flex';
                 }
             }
         });
 
-        // Автосохранение
-        editor.addEventListener('input', () => {
-            localStorage.setItem('vs_code_save', editor.value);
-        });
+        // Часы
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+
+        runDanScript(); // Автозапуск при старте
     </script>
 </body>
 </html>
